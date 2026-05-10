@@ -1,0 +1,5 @@
+node_modules/
+valebook.db
+valebook.db-journal
+.env
+.DS_Store

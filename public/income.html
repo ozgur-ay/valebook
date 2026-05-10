@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ValeBook - Gelir Girişi</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>ValeBook</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html"><i class="icon-dashboard"></i> Dashboard</a></li>
+                <li><a href="income.html" class="active"><i class="icon-income"></i> Gelir Girişi</a></li>
+                <li><a href="expense.html"><i class="icon-expense"></i> Gider Girişi</a></li>
+                <li><a href="reports.html"><i class="icon-reports"></i> Raporlar</a></li>
+                <li><a href="settings.html"><i class="icon-settings"></i> Ayarlar</a></li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <header class="top-bar">
+                <div class="breadcrumb">Girişler / Gelir Kaydı</div>
+                <div class="date-display" id="currentDate">-- -- ----</div>
+            </header>
+
+            <section class="entry-form">
+                <div class="card">
+                    <h2>Gün Sonu Gelir Girişi</h2>
+                    <form id="incomeForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="date">Tarih</label>
+                                <input type="date" id="date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleCount">Araç Sayısı</label>
+                                <input type="number" id="vehicleCount" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="unitFee">Birim Ücret (₺)</label>
+                                <input type="number" id="unitFee" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="totalAmount">Toplam Tutar (₺)</label>
+                                <input type="number" id="totalAmount" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="paymentMethod">Ödeme Yöntemi</label>
+                                <select id="paymentMethod">
+                                    <option value="cash">Nakit</option>
+                                    <option value="credit_card">Kredi Kartı (POS)</option>
+                                    <option value="mixed">Karışık</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="cashAmountGroup">
+                                <label for="cashAmount">Nakit Miktar</label>
+                                <input type="number" id="cashAmount" step="0.01">
+                            </div>
+                            <div class="form-group" id="cardAmountGroup" style="display:none;">
+                                <label for="cardAmount">Kart Miktar (POS)</label>
+                                <input type="number" id="cardAmount" step="0.01">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="note">Not</label>
+                            <textarea id="note" rows="2"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </form>
+                </div>
+            </section>
+
+            <section class="list-section">
+                <h2>Giriş Geçmişi</h2>
+                <div class="table-container">
+                    <table id="incomeTable">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Araç</th>
+                                <th>Nakit</th>
+                                <th>POS</th>
+                                <th>Toplam</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <span id="versionDisplay">ValeBook v1.0.0</span>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/income.js"></script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ValeBook - Ayarlar</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>ValeBook</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html"><i class="icon-dashboard"></i> Dashboard</a></li>
+                <li><a href="income.html"><i class="icon-income"></i> Gelir Girişi</a></li>
+                <li><a href="expense.html"><i class="icon-expense"></i> Gider Girişi</a></li>
+                <li><a href="reports.html"><i class="icon-reports"></i> Raporlar</a></li>
+                <li><a href="settings.html" class="active"><i class="icon-settings"></i> Ayarlar</a></li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <header class="top-bar">
+                <div class="breadcrumb">Yönetim / Ayarlar</div>
+                <div class="date-display" id="currentDate">-- -- ----</div>
+            </header>
+
+            <div class="settings-grid">
+                <!-- İşletme Ayarları -->
+                <section class="settings-section">
+                    <div class="card">
+                        <h2>İşletme Bilgileri</h2>
+                        <form id="settingsForm">
+                            <div class="form-group">
+                                <label for="business_name">İşletme Adı</label>
+                                <input type="text" id="business_name">
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="parking_fee">Standart Park Ücreti (₺)</label>
+                                    <input type="number" id="parking_fee">
+                                </div>
+                                <div class="form-group">
+                                    <label for="capacity">Otopark Kapasitesi</label>
+                                    <input type="number" id="capacity">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Ayarları Kaydet</button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- Gider Kategorileri -->
+                <section class="settings-section">
+                    <div class="card">
+                        <h2>Gider Kategorileri</h2>
+                        <div class="category-list" id="categoryList">
+                            <!-- JS ile doldurulacak -->
+                        </div>
+                        <div class="add-category">
+                            <input type="text" id="newCategoryName" placeholder="Yeni kategori adı...">
+                            <button class="btn btn-primary" onclick="Settings.addCategory()">Ekle</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Güncelleme Kontrolü -->
+                <section class="settings-section">
+                    <div class="card update-card">
+                        <h2>Yazılım Güncelleme</h2>
+                        <div class="update-info">
+                            <p>Mevcut Versiyon: <span id="currentVersion">v1.0.0</span></p>
+                            <p id="updateStatus">Güncelleme kontrolü yapılmadı.</p>
+                        </div>
+                        <div class="update-actions">
+                            <button class="btn btn-primary" id="checkUpdateBtn" onclick="Settings.checkUpdates()">Güncellemeleri Kontrol Et</button>
+                            <button class="btn btn-success" id="installUpdateBtn" style="display:none;" onclick="Settings.installUpdate()">Şimdi Yükle</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <span id="versionDisplay">ValeBook v1.0.0</span>
+        </footer>
+    </div>
+
+    <style>
+        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; }
+        .category-list { margin-bottom: 1.5rem; }
+        .category-item { 
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.75rem; border-bottom: 1px solid var(--border);
+        }
+        .add-category { display: flex; gap: 0.5rem; }
+        .update-card { border: 1px solid var(--primary); }
+        .update-info { margin-bottom: 1.5rem; }
+        .update-info p { margin-bottom: 0.5rem; font-size: 0.9375rem; }
+        .btn-success { background-color: var(--success); color: white; border: none; }
+    </style>
+
+    <script src="js/app.js"></script>
+    <script src="js/settings.js"></script>
+</body>
+</html>

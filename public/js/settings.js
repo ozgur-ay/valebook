@@ -1,0 +1,131 @@
+/**
+ * ValeBook Ayarlar ve Güncelleme Mantığı.
+ */
+
+const Settings = {
+    async init() {
+        await this.loadSettings();
+        await this.loadCategories();
+        this.updateVersionInfo();
+    },
+
+    updateVersionInfo() {
+        // package.json'dan API ile de alınabilir, şu an hardcoded
+        document.getElementById('currentVersion').innerText = 'v1.0.0';
+    },
+
+    async loadSettings() {
+        try {
+            const settings = await App.fetchAPI('/settings');
+            document.getElementById('business_name').value = settings.business_name || '';
+            document.getElementById('parking_fee').value = settings.parking_fee || 50;
+            document.getElementById('capacity').value = settings.capacity || 50;
+        } catch (error) {
+            console.error('Settigns load error:', error);
+        }
+
+        const form = document.getElementById('settingsForm');
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const data = {
+                business_name: document.getElementById('business_name').value,
+                parking_fee: document.getElementById('parking_fee').value,
+                capacity: document.getElementById('capacity').value
+            };
+            try {
+                await App.fetchAPI('/settings', {
+                    method: 'PUT',
+                    body: JSON.stringify(data)
+                });
+                alert('Ayarlar kaydedildi.');
+            } catch (error) {
+                alert('Kayıt hatası.');
+            }
+        };
+    },
+
+    async loadCategories() {
+        try {
+            const categories = await App.fetchAPI('/settings/categories');
+            const list = document.getElementById('categoryList');
+            list.innerHTML = '';
+            
+            categories.forEach(cat => {
+                const div = document.createElement('div');
+                div.className = 'category-item';
+                div.innerHTML = `
+                    <span>${cat.name}</span>
+                    ${cat.is_default ? '<small>(Varsayılan)</small>' : `<button class="btn-sm btn-danger" onclick="Settings.deleteCategory(${cat.id})">Sil</button>`}
+                `;
+                list.appendChild(div);
+            });
+        } catch (error) {
+            console.error('Categories load error:', error);
+        }
+    },
+
+    async addCategory() {
+        const input = document.getElementById('newCategoryName');
+        const name = input.value.trim();
+        if (!name) return;
+
+        try {
+            await App.fetchAPI('/settings/categories', {
+                method: 'POST',
+                body: JSON.stringify({ name })
+            });
+            input.value = '';
+            await this.loadCategories();
+        } catch (error) {
+            alert('Kategori eklenemedi.');
+        }
+    },
+
+    async deleteCategory(id) {
+        if (!confirm('Bu kategoriyi silmek istediğinize emin misiniz?')) return;
+        try {
+            await App.fetchAPI(`/settings/categories/${id}`, { method: 'DELETE' });
+            await this.loadCategories();
+        } catch (error) {
+            alert('Silme işlemi başarısız.');
+        }
+    },
+
+    // Güncelleme Kontrolü
+    async checkUpdates() {
+        const btn = document.getElementById('checkUpdateBtn');
+        const status = document.getElementById('updateStatus');
+        
+        btn.disabled = true;
+        status.innerText = 'Kontrol ediliyor...';
+
+        try {
+            const result = await App.fetchAPI('/update/check');
+            if (result.available) {
+                status.innerHTML = `<span class="text-success">✅ Yeni versiyon bulundu: ${result.latestVersion}</span>`;
+                document.getElementById('installUpdateBtn').style.display = 'inline-flex';
+            } else {
+                status.innerText = 'Uygulamanız güncel.';
+            }
+        } catch (error) {
+            status.innerText = 'Güncelleme kontrolü başarısız.';
+        } finally {
+            btn.disabled = false;
+        }
+    },
+
+    async installUpdate() {
+        const status = document.getElementById('updateStatus');
+        status.innerText = 'Güncelleme yükleniyor, lütfen bekleyin...';
+        
+        try {
+            await App.fetchAPI('/update/install', { method: 'POST' });
+            alert('Güncelleme başarıyla tamamlandı. Uygulamanın yeniden başlatılması gerekebilir.');
+            location.reload();
+        } catch (error) {
+            alert('Güncelleme yüklenirken hata oluştu.');
+        }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => Settings.init());
