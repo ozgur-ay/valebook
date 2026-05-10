@@ -151,7 +151,11 @@ function initAutoUpdater() {
     // Manuel kontrol isteğini karşıla
     ipcMain.on('trigger-manual-check', () => {
         const { checkUpdateViaTags } = require('./src/updater-core.js');
-        checkUpdateViaTags(mainWindow);
+        checkUpdateViaTags(mainWindow).then(result => {
+            if (result && result.type === 'available') {
+                autoUpdater.checkForUpdates();
+            }
+        });
     });
 }
 

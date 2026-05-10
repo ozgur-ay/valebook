@@ -166,9 +166,21 @@ const Settings = {
                 break;
             case 'available':
                 status.innerHTML = `<span class="text-success">✅ Yeni Sürüm v${info.version} Mevcut!</span>`;
-                installBtn.innerHTML = 'GitHub\'dan Güncelle';
+                installBtn.innerHTML = 'Güncellemeyi İndir';
                 installBtn.style.display = 'inline-flex';
-                installBtn.onclick = () => window.open(`https://github.com/ozgur-ay/valebook/releases/tag/v${info.version}`, '_blank');
+                installBtn.onclick = () => Settings.installUpdate();
+                break;
+            case 'progress':
+                const percent = Math.round(info.percent);
+                status.innerHTML = `
+                    <div style="margin-top: 0.5rem;">
+                        <span>İndiriliyor: %${percent}</span>
+                        <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-top: 4px; overflow: hidden;">
+                            <div style="width: ${percent}%; height: 100%; background: var(--success); transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+                `;
+                installBtn.style.display = 'none';
                 break;
             case 'not-available':
                 status.innerHTML = `<span class="text-success">✨ Yazılım Güncel (v${this.currentVersion || ''})</span>`;
@@ -182,7 +194,10 @@ const Settings = {
                 status.innerHTML = `<span class="text-success">✨ Güncelleme hazır!</span>`;
                 installBtn.innerHTML = 'Şimdi Yeniden Başlat';
                 installBtn.style.display = 'inline-flex';
-                installBtn.onclick = () => Settings.installUpdate();
+                installBtn.onclick = () => {
+                    // Update endpoint'ine git ve restart iste (main process handle edecek)
+                    App.fetchAPI('/update/install', { method: 'POST' });
+                };
                 break;
         }
     }
