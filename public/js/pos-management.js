@@ -29,14 +29,6 @@ const POS = {
     async loadPending() {
         try {
             // Backend'den bekleyen POS işlemlerini çek
-            // Şimdilik /income filtresini kullanıyoruz ama backend'e özel endpoint ekleyebiliriz
-            const allIncome = await App.fetchAPI('/income');
-            
-            // Not: Backend consolidation yaptığı için ham veriye erişmek için /income/raw gibi bir endpoint gerekebilir 
-            // ama şimdilik consolidate edilmiş date bazlı veriden gidelim.
-            // ASLINDA: POS takibi ham veri üzerinden olmalı.
-            
-            // Backend'e ham bekleyenleri getiren bir endpoint ekleyelim.
             const from = document.getElementById('posFromDate')?.value || '';
             const to = document.getElementById('posToDate')?.value || '';
             const pending = await App.fetchAPI(`/income/pending-pos?from=${from}&to=${to}`);

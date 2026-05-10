@@ -1,30 +1,32 @@
 VALEBOOK KULLANIM KILAVUZU
 
 1. KURULUM VE İLK AÇILIŞ
-Uygulama kurulum gerektirmez. ValeBook_Setup.exe ile çalışır. İnternet varsa güncellemeleri otomatik denetler.
+Uygulama kurulum gerektirmez. ValeBook.exe ile çalışır. İnternet varsa güncellemeleri otomatik denetler (Ayarlar > Güncelleme Kontrol).
 
 2. AYARLAR ⚙️
 - İşletme Adı: Otopark adınızı girin.
-- POS Komisyonu: Bankanızın kesinti oranını girin (%1.5 gibi).
+- POS Komisyonu: Bankanızın kesinti oranını girin (%1.5 gibi). Bu oran tüm hesaplamalarda (Dashboard, Raporlar) kullanılır.
 - Kategoriler: Gider tiplerini (Maaş, Kira vb.) buradan ekleyin.
 
 3. GELİR GİRİŞİ 💰
 - Araç sayısını girin ve ödeme yöntemini seçin.
 - POS işlemleri otomatik "Bekleyen" olarak ayrılır.
-- Hata yaparsanız Geri/İleri butonlarını kullanabilirsiniz.
+- Hata yaparsanız Geri/İleri (Undo/Redo) butonlarını kullanarak işlemleri saniyeler içinde geri alabilirsiniz.
 
-4. POS YÖNETİMİ VE MUTABAKAT 🏦
-- Banka Tahsilatı Gir: Bankanıza para yattığında tutarı girin.
-- FIFO Mantığı: Sistem otomatik olarak en eski alacaktan başlayarak mahsup eder.
-- Kalan Alacak: Ne kadar daha para geleceğini "Kalan Alacak" sütunundan kuruşu kuruşuna görebilirsiniz.
+4. POS YÖNETIMI VE MUTABAKAT 🏦 (GÜNCELLENDI)
+- Tarih Filtresi: Belirli tarih aralıklarındaki POS işlemlerini listeleyebilirsiniz.
+- Banka Tahsilatı Gir: Bankadan net yatan parayı girin.
+- FIFO Mantığı: Sistem en eski alacaktan başlayarak otomatik mahsup eder.
+- Tahmini Kesinti: Dashboard'daki "Bankada Bekleyen" kartında tahmini komisyon tutarı not olarak görünür.
+- Tahsilat Geri Al: Yapılan son toplu tahsilatı tek tıkla geri alabilirsiniz.
 
 5. DASHBOARD (ANA EKRAN) 📊
-- Sıcak Nakit (Kasa): Harcayabileceğiniz net parayı gösterir (Nakit + Bankadan Gelenler - Giderler).
-- Bankada Bekleyen: Henüz bankadan hesabınıza düşmemiş olan alacaklardır.
-- Trend Grafik: Haftalık performansınızı görselleştirir.
+- Sıcak Nakit (Kasa): Harcayabileceğiniz nakit para (Nakit + Bankadan Gelenler - Giderler).
+- Bankada Bekleyen: Bankadaki brüt alacağınız ve (parantez içinde) tahmini net alacağınızdır.
+- Grafik: Günlük araç girişi ve gelir trendinizi görsel olarak takip edin.
 
-6. GİDER VE RAPORLAR 📉
-- Giderleri girin, Sıcak Nakit'ten otomatik düşer.
-- Raporlar sayfasından Excel alabilir ve detaylı döküm inceleyebilirsiniz.
+6. RAPORLAR VE DIŞA AKTARIM 📉 (GÜNCELLENDI)
+- Detaylı Hareketler: Her bir girişin brüt, komisyon ve net tutarını görebilirsiniz.
+- Excel Çıktısı: Alınan Excel dosyasında "Banka Kesintisi" ve "Net Tutar" sütunları otomatik eklenir.
 
-Mutlu Kazançlar! v1.1.16
+Mutlu Kazançlar! v1.1.32

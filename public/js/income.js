@@ -14,7 +14,6 @@ const Income = {
         document.getElementById('date').value = new Date().toISOString().split('T')[0];
     },
 
-    // Tarihi bugün yap(birim ücret) yükle
     // En son girilen kaydı forma doldur (Hatırlatma özelliği)
     async loadLastEntry() {
         try {
