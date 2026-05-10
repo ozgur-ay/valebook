@@ -103,7 +103,7 @@ router.post('/collect-amount', (req, res) => {
         if (isNaN(amount) || amount <= 0) return res.status(400).json({ error: 'Valid amount required' });
 
         // Komisyon ayarını al
-        const setting = db.prepare('SELECT value FROM settings WHERE key = "pos_commission_rate"').get();
+        const setting = db.prepare("SELECT value FROM settings WHERE key = 'pos_commission_rate'").get();
         const rate = setting ? parseFloat(setting.value) : 0;
 
         // Tahsilatı bekleyen veya eksik tahsil edilmiş tüm POS kayıtlarını getir (En eski tarihten başla)
@@ -160,7 +160,7 @@ router.post('/collect-amount', (req, res) => {
 // Tüm bekleyen POS'ları tek tıkla tahsil et
 router.post('/collect-all-pos', (req, res) => {
     try {
-        const commissionSetting = db.prepare('SELECT value FROM settings WHERE key = "pos_commission_rate"').get();
+        const commissionSetting = db.prepare("SELECT value FROM settings WHERE key = 'pos_commission_rate'").get();
         const rate = commissionSetting ? parseFloat(commissionSetting.value) : 0;
         
         // Önemli: Tüm bekleyenlerin collected_amount değerini net beklentiye eşitle

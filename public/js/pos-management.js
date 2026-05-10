@@ -77,17 +77,17 @@ const POS = {
                 grandTotalNet += Math.max(0, remaining);
                 grandTotalCollected += collected;
 
-                const isFullyCollected = remaining <= 0.01;
+                const isFullyCollected = remaining <= 1; // 1 TL altı toleransı
                 const statusText = isFullyCollected ? '✅ Tahsil Edildi' : (collected > 0 ? '⏳ Kısmi' : '🆕 Bekliyor');
                 const statusClass = isFullyCollected ? 'text-success' : (collected > 0 ? 'text-warning' : 'text-primary');
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${item.date ? new Date(item.date).toLocaleDateString('tr-TR') : '-'}</td>
-                    <td>₺${(item.card_amount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
-                    <td>₺${netExpected.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
-                    <td class="text-success">₺${collected.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
-                    <td class="neon-text-blue">₺${Math.max(0, remaining).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
+                    <td>₺${Math.round(item.card_amount || 0).toLocaleString('tr-TR')}</td>
+                    <td>₺${Math.round(netExpected).toLocaleString('tr-TR')}</td>
+                    <td class="text-success">₺${Math.round(collected).toLocaleString('tr-TR')}</td>
+                    <td class="neon-text-blue">₺${Math.round(Math.max(0, remaining)).toLocaleString('tr-TR')}</td>
                     <td class="${statusClass}">${statusText}</td>
                 `;
                 body.appendChild(tr);
@@ -96,9 +96,9 @@ const POS = {
             }
         });
 
-        if (totalDisplay) totalDisplay.innerText = grandTotalNet.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + " ₺";
-        if (grossDisplay) grossDisplay.innerText = grandTotalGross.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + " ₺";
-        if (collectedDisplay) collectedDisplay.innerText = grandTotalCollected.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + " ₺";
+        if (totalDisplay) totalDisplay.innerText = Math.round(grandTotalNet).toLocaleString('tr-TR') + " ₺";
+        if (grossDisplay) grossDisplay.innerText = Math.round(grandTotalGross).toLocaleString('tr-TR') + " ₺";
+        if (collectedDisplay) collectedDisplay.innerText = Math.round(grandTotalCollected).toLocaleString('tr-TR') + " ₺";
     },
 
     async collectAmount() {
