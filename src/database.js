@@ -30,6 +30,9 @@ db.exec(`
         cash_amount REAL,
         card_amount REAL,
         payment_method TEXT, -- 'cash', 'credit_card', 'mixed'
+        pos_status TEXT DEFAULT 'na', -- 'na', 'pending', 'collected', 'cancelled'
+        pos_expected_date TEXT,
+        pos_collected_date TEXT,
         note TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
@@ -68,6 +71,30 @@ db.exec(`
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
 `);
+
+// --- Veritabanı Yamaları (Migrations) ---
+// Mevcut tabloların üzerine eksik sütunları eklemek için kullanılır
+const applyMigrations = () => {
+    const columns = [
+        { table: 'income', column: 'pos_status', type: 'TEXT DEFAULT "na"' },
+        { table: 'income', column: 'pos_expected_date', type: 'TEXT' },
+        { table: 'income', column: 'pos_collected_date', type: 'TEXT' }
+    ];
+
+    columns.forEach(m => {
+        try {
+            db.exec(`ALTER TABLE ${m.table} ADD COLUMN ${m.column} ${m.type}`);
+            console.log(`Migration applied: ${m.table}.${m.column}`);
+        } catch (e) {
+            // Sütun zaten varsa hata verecektir, sessizce geçiyoruz
+            if (!e.message.includes('duplicate column name')) {
+                console.error(`Migration error (${m.table}.${m.column}):`, e.message);
+            }
+        }
+    });
+};
+
+applyMigrations();
 
 // --- Varsayılan Veriler ---
 const setupDefaults = () => {
