@@ -1,15 +1,16 @@
 :root {
-    --primary: #2563eb;
-    --primary-dark: #1d4ed8;
-    --bg-dark: #0f172a;
-    --sidebar-bg: #1e293b;
-    --text-white: #f8fafc;
-    --text-gray: #94a3b8;
-    --card-bg: #1e293b;
-    --border: #334155;
+    --primary: #3b82f6;
+    --primary-glow: rgba(59, 130, 246, 0.5);
     --success: #10b981;
+    --success-glow: rgba(16, 185, 129, 0.4);
     --danger: #ef4444;
     --warning: #f59e0b;
+    --bg-dark: #0b0f1a;
+    --bg-glass: rgba(23, 37, 84, 0.45);
+    --border-glass: rgba(255, 255, 255, 0.08);
+    --text-white: #f8fafc;
+    --text-gray: #94a3b8;
+    --glass-blur: blur(16px);
 }
 
 * {
@@ -20,10 +21,13 @@
 
 body {
     font-family: 'Inter', sans-serif;
-    background-color: var(--bg-dark);
+    background: radial-gradient(circle at top right, #1e1b4b, #0b0f1a 40%),
+                radial-gradient(circle at bottom left, #1e1b4b, #0b0f1a 40%);
+    background-attachment: fixed;
     color: var(--text-white);
     line-height: 1.5;
     overflow-x: hidden;
+    min-height: 100vh;
 }
 
 .app-container {
@@ -104,66 +108,91 @@ body {
 /* Stats Grid */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1.5rem;
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
 }
-
-.stat-card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 1rem;
-    padding: 1.5rem;
-}
-
-.stat-card h3 {
-    font-size: 0.875rem;
-    color: var(--text-gray);
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-}
-
-.stat-card .value {
-    font-size: 1.875rem;
-    font-weight: 700;
-    color: var(--text-white);
-}
-
-.stat-card.highlight {
-    border-color: var(--primary);
-    background: linear-gradient(135deg, #1e293b 0%, #172554 100%);
-}
-
-.stat-card.highlight .value {
-    color: var(--success);
-}
-
-/* Charts */
+ 
+/* Charts Grid */
 .charts-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: 1.6fr 1fr;
     gap: 1.5rem;
     margin-bottom: 2.5rem;
 }
  
-.chart-card {
+@media (max-width: 1100px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+ 
+/* --- Glass Cards --- */
+.card, .glass-card {
+    background: var(--bg-glass);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border-glass);
+    border-radius: 1.25rem;
     padding: 1.5rem;
-    min-height: 350px;
-    display: flex;
-    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
 }
  
-.chart-card h2 {
-    font-size: 1rem;
+.glass-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+    pointer-events: none;
+}
+ 
+.glass-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+ 
+/* Stat Cards Specifics */
+.stat-card .label {
+    font-size: 0.8125rem;
     color: var(--text-gray);
-    margin-bottom: 1.5rem;
-    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+    display: block;
 }
  
-.chart-card canvas {
-    flex: 1;
+.stat-card .value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-white);
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+ 
+.stat-card.highlight .value {
+    background: linear-gradient(to right, #10b981, #34d399);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px var(--success-glow);
+}
+ 
+/* Chart Container Fix - Kayan Grafikleri Durdurur */
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    margin-top: 1rem;
+}
+ 
+.chart-container canvas {
     width: 100% !important;
-    height: auto !important;
+    height: 100% !important;
 }
 
 /* Table Container */

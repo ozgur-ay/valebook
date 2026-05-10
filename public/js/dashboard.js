@@ -72,14 +72,26 @@ const Dashboard = {
     },
 
     renderIncomeChart(data) {
-        const ctx = document.getElementById('incomeTrendChart').getContext('2d');
+        const canvas = document.getElementById('incomeTrendChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
         
-        // Verileri Chart.js formatına hazırla
+        // Premium gradientler
+        const cashGrad = ctx.createLinearGradient(0, 0, 0, 320);
+        cashGrad.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
+        cashGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
+        
+        const cardGrad = ctx.createLinearGradient(0, 0, 0, 320);
+        cardGrad.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
+        cardGrad.addColorStop(1, 'rgba(59, 130, 246, 0)');
+
         const labels = data.map(item => new Date(item.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }));
         const cashData = data.map(item => item.cash);
         const cardData = data.map(item => item.card);
 
-        new Chart(ctx, {
+        if (window.incomeChart) window.incomeChart.destroy();
+
+        window.incomeChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: labels,
@@ -88,17 +100,25 @@ const Dashboard = {
                         label: 'Nakit (₺)',
                         data: cashData,
                         borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        backgroundColor: cashGrad,
                         fill: true,
-                        tension: 0.4
+                        tension: 0.4,
+                        pointBackgroundColor: '#10b981',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     },
                     {
-                        label: 'Kart (₺)',
+                        label: 'Kart / POS (₺)',
                         data: cardData,
-                        borderColor: '#2563eb',
-                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        borderColor: '#3b82f6',
+                        backgroundColor: cardGrad,
                         fill: true,
-                        tension: 0.4
+                        tension: 0.4,
+                        pointBackgroundColor: '#3b82f6',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     }
                 ]
             },
@@ -107,31 +127,38 @@ const Dashboard = {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: { color: '#94a3b8', font: { family: 'Inter' } }
+                        position: 'top',
+                        align: 'end',
+                        labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 }, usePointStyle: true, padding: 20 }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        titleFont: { size: 13, weight: '700' },
+                        bodyFont: { size: 13 },
+                        padding: 12,
+                        cornerRadius: 10,
+                        displayColors: true
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        grid: { color: 'rgba(51, 65, 85, 0.5)' },
-                        ticks: { color: '#94a3b8' }
+                        grid: { color: 'rgba(255, 255, 255, 0.03)', drawBorder: false },
+                        ticks: { color: '#64748b', font: { size: 11 }, padding: 10 }
                     },
                     x: {
                         grid: { display: false },
-                        ticks: { color: '#94a3b8' }
+                        ticks: { color: '#64748b', font: { size: 11 }, padding: 10 }
                     }
-                },
-                animation: {
-                    duration: 2000,
-                    easing: 'easeOutQuart'
                 }
             }
         });
     },
 
     renderExpenseChart(data) {
-        const ctx = document.getElementById('expenseDistributionChart').getContext('2d');
+        const canvas = document.getElementById('expenseDistributionChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
         
         if (data.length === 0) {
             ctx.font = '14px Inter';
@@ -144,33 +171,36 @@ const Dashboard = {
         const labels = data.map(item => item.category);
         const values = data.map(item => item.total);
 
-        new Chart(ctx, {
+        if (window.expenseChart) window.expenseChart.destroy();
+
+        window.expenseChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: labels,
                 datasets: [{
                     data: values,
                     backgroundColor: [
-                        '#2563eb', '#10b981', '#f59e0b', '#ef4444', 
+                        '#3b82f6', '#10b981', '#f59e0b', '#ef4444', 
                         '#8b5cf6', '#ec4899', '#06b6d4', '#475569'
                     ],
-                    borderWidth: 0
+                    borderWidth: 0,
+                    hoverOffset: 15
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '70%',
+                cutout: '75%',
                 plugins: {
                     legend: {
                         position: 'right',
-                        labels: { color: '#94a3b8', font: { family: 'Inter' }, padding: 20 }
+                        labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 }, padding: 15, usePointStyle: true }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        cornerRadius: 10,
+                        padding: 12
                     }
-                },
-                animation: {
-                    animateRotate: true,
-                    animateScale: true,
-                    duration: 2000
                 }
             }
         });

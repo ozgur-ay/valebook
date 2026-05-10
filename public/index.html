@@ -34,39 +34,42 @@
             <section class="dashboard-overview">
                 <!-- Özet Kartları -->
                 <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3>Bugünkü Araç</h3>
-                        <p class="value" id="todayVehicleCount">0</p>
+                    <div class="glass-card stat-card">
+                        <span class="label">Bugünkü Araç</span>
+                        <div class="value" id="todayVehicleCount">0</div>
                     </div>
-                    <div class="stat-card highlight">
-                        <h3>Net Kâr (Bu Ay)</h3>
-                        <p class="value" id="monthNetProfit">0.00 ₺</p>
+                    <div class="glass-card stat-card highlight">
+                        <span class="label">Net Kâr (Bu Ay)</span>
+                        <div class="value" id="monthNetProfit">₺0,00</div>
                     </div>
-                    <div class="stat-card">
-                        <h3>Toplam Gelir</h3>
-                        <p class="value" id="todayTotalIncome">0.00 ₺</p>
+                    <div class="glass-card stat-card">
+                        <span class="label">Toplam Gelir</span>
+                        <div class="value" id="todayTotalIncome">₺0,00</div>
                     </div>
-                    <div class="stat-card">
-                        <h3>Toplam Gider</h3>
-                        <p class="value" id="todayTotalExpense">0.00 ₺</p>
+                    <div class="glass-card stat-card">
+                        <span class="label">Toplam Gider</span>
+                        <div class="value" id="todayTotalExpense">₺0,00</div>
                     </div>
                 </div>
  
                 <!-- Grafik Bölümü -->
                 <div class="charts-grid">
-                    <div class="card chart-card">
+                    <div class="glass-card">
                         <h2>Haftalık Kazanç Trendi</h2>
-                        <canvas id="incomeTrendChart"></canvas>
+                        <div class="chart-container">
+                            <canvas id="incomeTrendChart"></canvas>
+                        </div>
                     </div>
-                    <div class="card chart-card">
+                    <div class="glass-card">
                         <h2>Gider Dağılımı</h2>
-                        <canvas id="expenseDistributionChart"></canvas>
+                        <div class="chart-container">
+                            <canvas id="expenseDistributionChart"></canvas>
+                        </div>
                     </div>
                 </div>
  
                 <!-- Son İşlemler -->
                 <div class="recent-activity">
-                    <h2>Son İşlemler</h2>
                     <h2>Son İşlemler</h2>
                     <div class="table-container">
                         <table id="recentTransactionsTable">
