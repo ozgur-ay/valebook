@@ -1,6 +1,6 @@
 {
   "name": "valebook",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Vale Cafe Parking Cash Register Application",
   "main": "main.js",
   "scripts": {

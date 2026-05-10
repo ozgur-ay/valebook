@@ -9,9 +9,13 @@ const Settings = {
         this.updateVersionInfo();
     },
 
-    updateVersionInfo() {
-        // package.json'dan API ile de alınabilir, şu an hardcoded
-        document.getElementById('currentVersion').innerText = 'v1.0.1';
+    async updateVersionInfo() {
+        try {
+            const result = await App.fetchAPI('/update/check');
+            document.getElementById('currentVersion').innerText = 'v' + result.current;
+        } catch (e) {
+            document.getElementById('currentVersion').innerText = 'vX.X.X (Bilinmiyor)';
+        }
     },
 
     async loadSettings() {

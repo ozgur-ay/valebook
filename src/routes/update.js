@@ -19,16 +19,26 @@ router.get('/check', async (req, res) => {
             return res.json({ available: false, current: pkg.version });
         }
 
-        const result = await autoUpdater.checkForUpdates();
-        const latestVersion = result && result.updateInfo ? result.updateInfo.version : pkg.version;
-        // Eğer GitHub'daki sürüm paket sürümünden farklıysa (yüksekse)
-        const isNewer = latestVersion !== pkg.version;
-        
-        res.json({
-            available: isNewer,
-            current: pkg.version,
-            latestVersion: latestVersion
-        });
+        try {
+            const result = await autoUpdater.checkForUpdates();
+            const latestVersion = result && result.updateInfo ? result.updateInfo.version : pkg.version;
+            const isNewer = latestVersion !== pkg.version;
+            
+            res.json({
+                available: isNewer,
+                current: pkg.version,
+                latestVersion: latestVersion
+            });
+        } catch (updateErr) {
+            // GitHub isteği başarısız olduysa veya versiyon bulunamadıysa patlamak yerine
+            // güncelleme yok gibi davranıp hatayı logluyoruz.
+            res.json({
+                available: false,
+                current: pkg.version,
+                latestVersion: pkg.version,
+                debugError: updateErr.message
+            });
+        }
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

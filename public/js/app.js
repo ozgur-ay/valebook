@@ -24,11 +24,16 @@ const App = {
     },
 
     // Versiyonu yükle (package.json'dan veya sabit)
-    loadVersion() {
+    async loadVersion() {
         const el = document.getElementById('versionDisplay');
         if (el) {
-            // Basitlik için şu an harcoded
-            el.innerText = 'ValeBook v1.0.1';
+            try {
+                const res = await fetch('/api/update/check');
+                const data = await res.json();
+                el.innerText = 'ValeBook v' + (data.current || 'X.X.X');
+            } catch (e) {
+                el.innerText = 'ValeBook';
+            }
         }
     },
 
