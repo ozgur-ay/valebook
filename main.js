@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog } = require('electron');
+const { app, BrowserWindow, dialog, shell, ipcMain, session } = require('electron');
 const path = require('path');
 const { autoUpdater } = require('electron-updater');
 
@@ -15,8 +15,27 @@ function createWindow() {
         title: "ValeBook",
         webPreferences: {
             nodeIntegration: false,
-            contextIsolation: true
+            contextIsolation: true,
+            preload: path.join(__dirname, 'src/preload.js')
         }
+    });
+
+    // Otomatik Dosya Açma (Download tamamlanınca açar)
+    session.defaultSession.on('will-download', (event, item, webContents) => {
+        item.on('updated', (event, state) => {
+            if (state === 'interrupted') {
+                console.log('İndirme kesildi');
+            }
+        });
+        item.once('done', (event, state) => {
+            if (state === 'completed') {
+                const filePath = item.getSavePath();
+                console.log('İndirme tamamlandı:', filePath);
+                shell.openPath(filePath);
+            } else {
+                console.log(`İndirme başarısız: ${state}`);
+            }
+        });
     });
 
     // Menü çubuğunu gizle

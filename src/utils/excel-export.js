@@ -11,19 +11,27 @@ async function exportToExcel(incomeData, expenseData, fileName = 'ValeBook_Rapor
     workbook.lastModifiedBy = 'ValeBook';
     workbook.created = new Date();
 
-    // --- Gelir Sayfası ---
-    const incomeSheet = workbook.addWorksheet('Gelirler');
-    incomeSheet.columns = [
-        { header: 'Tarih', key: 'date', width: 15 },
-        { header: 'Araç Sayısı', key: 'vehicle_count', width: 12 },
-        { header: 'Birim Ücret', key: 'unit_fee', width: 12 },
-        { header: 'Toplam Tutar', key: 'total_amount', width: 15 },
-        { header: 'Nakit', key: 'cash_amount', width: 12 },
-        { header: 'Kart (POS)', key: 'card_amount', width: 12 },
-        { header: 'Ödeme Yöntemi', key: 'payment_method', width: 15 },
-        { header: 'Not', key: 'note', width: 30 }
-    ];
-    incomeSheet.addRows(incomeData);
+    // Verileri işle (Dil yerelleştirme)
+    const mapPaymentMethod = (method) => {
+        const mapping = {
+            'cash': 'Nakit',
+            'credit_card': 'Kredi Kartı',
+            'mixed': 'Karışık'
+        };
+        return mapping[method] || method;
+    };
+
+    const processedIncomeData = incomeData.map(row => ({
+        ...row,
+        payment_method: mapPaymentMethod(row.payment_method)
+    }));
+
+    const processedExpenseData = expenseData.map(row => ({
+        ...row,
+        payment_method: mapPaymentMethod(row.payment_method)
+    }));
+
+    incomeSheet.addRows(processedIncomeData);
 
     // --- Gider Sayfası ---
     const expenseSheet = workbook.addWorksheet('Giderler');
@@ -36,7 +44,7 @@ async function exportToExcel(incomeData, expenseData, fileName = 'ValeBook_Rapor
         { header: 'Belge No', key: 'document_no', width: 15 },
         { header: 'Not', key: 'note', width: 30 }
     ];
-    expenseSheet.addRows(expenseData);
+    expenseSheet.addRows(processedExpenseData);
 
     // Stil özellikleri ekle
     [incomeSheet, expenseSheet].forEach(sheet => {
