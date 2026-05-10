@@ -25,6 +25,9 @@ function createWindow() {
     // Kendi sunucumuzu yükle
     // Varsayılan port server.js'te 3000
     mainWindow.loadURL('http://localhost:3000');
+    
+    // Tam ekran başlat
+    mainWindow.maximize();
 
     mainWindow.on('closed', function () {
         mainWindow = null;
