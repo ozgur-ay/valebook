@@ -38,6 +38,8 @@ router.get('/summary', (req, res) => {
             ORDER BY date DESC
         `).all(from, to);
 
+        const totalExpense = expense.reduce((sum, item) => sum + item.total_amount, 0);
+
         res.json({
             summary: {
                 total_vehicles: income.total_vehicles || 0,
