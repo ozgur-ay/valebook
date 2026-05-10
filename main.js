@@ -73,6 +73,7 @@ function initAutoUpdater() {
 
     autoUpdater.on('update-not-available', (info) => {
         console.log('Güncelleme yok.');
+        if (mainWindow) mainWindow.webContents.send('update-status', { type: 'not-available' });
     });
 
     autoUpdater.on('error', (err) => {

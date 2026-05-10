@@ -167,6 +167,9 @@ const Settings = {
                 case 'error':
                     status.innerHTML = `<span class="text-danger">❌ Hata: ${info.message || 'İndirme başarısız'}</span>`;
                     break;
+                case 'not-available':
+                    status.innerHTML = `<span class="text-success">✨ Yazılım Güncel (v${App.version || ''})</span>`;
+                    break;
                 case 'downloaded':
                     status.innerHTML = `<span class="text-success">✨ Güncelleme hazır! Uygulama yeniden başlatılacak.</span>`;
                     break;
