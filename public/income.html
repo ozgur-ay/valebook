@@ -70,7 +70,11 @@
                             <label for="note">Not</label>
                             <textarea id="note" rows="2"></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Kaydet</button>
+                            <button type="button" id="btnUndo" class="btn btn-secondary" title="Son işlemi geri al">⬅️ Geri</button>
+                            <button type="button" id="btnRedo" class="btn btn-secondary" title="Son geri alınanı geri yükle">İleri ➡️</button>
+                        </div>
                     </form>
                 </div>
             </section>

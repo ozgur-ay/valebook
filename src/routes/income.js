@@ -6,31 +6,70 @@ const db = require('../database');
  * Gelir işlemleri API rotaları.
  */
 
-// Tüm gelirleri getir (filtre: date)
+// Gelir listesini getir (Tarih bazında konsolide)
 router.get('/', (req, res) => {
     try {
         const { from, to } = req.query;
-        let query = 'SELECT * FROM income';
+        let baseQuery = `
+            SELECT 
+                date,
+                SUM(vehicle_count) as vehicle_count,
+                SUM(cash_amount) as cash_amount,
+                SUM(card_amount) as card_amount,
+                SUM(total_amount) as total_amount
+            FROM income 
+            WHERE is_deleted = 0
+        `;
         const params = [];
 
         if (from && to) {
-            query += ' WHERE date BETWEEN ? AND ?';
+            baseQuery += ' AND date BETWEEN ? AND ?';
             params.push(from, to);
         }
 
-        query += ' ORDER BY date DESC, created_at DESC';
-        const rows = db.prepare(query).all(...params);
+        baseQuery += ' GROUP BY date ORDER BY date DESC LIMIT 50';
+        const rows = db.prepare(baseQuery).all(...params);
         res.json(rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
  
-// En son girilen kaydı getir (Hatırlatıcı özelliği için)
+// En son girilen ham kaydı getir (Hatırlatıcı için)
 router.get('/last', (req, res) => {
     try {
-        const row = db.prepare('SELECT * FROM income ORDER BY created_at DESC LIMIT 1').get();
+        const row = db.prepare('SELECT * FROM income WHERE is_deleted = 0 ORDER BY created_at DESC LIMIT 1').get();
         res.json(row || {});
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Geri Al (Undo)
+router.post('/undo', (req, res) => {
+    try {
+        const last = db.prepare('SELECT id FROM income WHERE is_deleted = 0 ORDER BY created_at DESC LIMIT 1').get();
+        if (last) {
+            db.prepare('UPDATE income SET is_deleted = 1 WHERE id = ?').run(last.id);
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ error: 'Geri alınacak işlem kalmadı.' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// İleri Al (Redo)
+router.post('/redo', (req, res) => {
+    try {
+        const lastDeleted = db.prepare('SELECT id FROM income WHERE is_deleted = 1 ORDER BY created_at DESC LIMIT 1').get();
+        if (lastDeleted) {
+            db.prepare('UPDATE income SET is_deleted = 0 WHERE id = ?').run(lastDeleted.id);
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ error: 'İleri alınacak işlem kalmadı.' });
+        }
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

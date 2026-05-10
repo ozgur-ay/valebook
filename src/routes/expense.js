@@ -6,31 +6,68 @@ const db = require('../database');
  * Gider işlemleri API rotaları.
  */
 
-// Tüm giderleri getir
+// Gider listesini getir (Konsolide)
 router.get('/', (req, res) => {
     try {
         const { from, to } = req.query;
-        let query = 'SELECT * FROM expense';
+        let baseQuery = `
+            SELECT 
+                date,
+                GROUP_CONCAT(category || ': ' || amount, ' | ') as description,
+                SUM(amount) as amount
+            FROM expense 
+            WHERE is_deleted = 0
+        `;
         const params = [];
 
         if (from && to) {
-            query += ' WHERE date BETWEEN ? AND ?';
+            baseQuery += ' AND date BETWEEN ? AND ?';
             params.push(from, to);
         }
 
-        query += ' ORDER BY date DESC, created_at DESC';
-        const rows = db.prepare(query).all(...params);
+        baseQuery += ' GROUP BY date ORDER BY date DESC LIMIT 50';
+        const rows = db.prepare(baseQuery).all(...params);
         res.json(rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// En son girilen gideri getir
+// En son girilen gideri getir (Hatırlatıcı için)
 router.get('/last', (req, res) => {
     try {
-        const row = db.prepare('SELECT * FROM expense ORDER BY created_at DESC LIMIT 1').get();
+        const row = db.prepare('SELECT * FROM expense WHERE is_deleted = 0 ORDER BY created_at DESC LIMIT 1').get();
         res.json(row || {});
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Geri Al
+router.post('/undo', (req, res) => {
+    try {
+        const last = db.prepare('SELECT id FROM expense WHERE is_deleted = 0 ORDER BY created_at DESC LIMIT 1').get();
+        if (last) {
+            db.prepare('UPDATE expense SET is_deleted = 1 WHERE id = ?').run(last.id);
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ error: 'İşlem yok' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// İleri Al
+router.post('/redo', (req, res) => {
+    try {
+        const lastDeleted = db.prepare('SELECT id FROM expense WHERE is_deleted = 1 ORDER BY created_at DESC LIMIT 1').get();
+        if (lastDeleted) {
+            db.prepare('UPDATE expense SET is_deleted = 0 WHERE id = ?').run(lastDeleted.id);
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ error: 'İşlem yok' });
+        }
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

@@ -61,6 +61,29 @@ const Income = {
             }
         });
 
+        // Geri/İleri Al butonları
+        document.getElementById('btnUndo').addEventListener('click', async () => {
+            try {
+                await App.fetchAPI('/income/undo', { method: 'POST' });
+                await this.loadHistory();
+                await this.loadLastEntry();
+                App.showToast('İşlem geri alındı.');
+            } catch (e) {
+                App.showToast('Geri alınacak işlem yok.', 'warning');
+            }
+        });
+
+        document.getElementById('btnRedo').addEventListener('click', async () => {
+            try {
+                await App.fetchAPI('/income/redo', { method: 'POST' });
+                await this.loadHistory();
+                await this.loadLastEntry();
+                App.showToast('İşlem ileri alındı.');
+            } catch (e) {
+                App.showToast('İleri alınacak işlem yok.', 'warning');
+            }
+        });
+
         if (!form) return;
         const vehicleInput = document.getElementById('vehicleCount');
         const feeInput = document.getElementById('unitFee');

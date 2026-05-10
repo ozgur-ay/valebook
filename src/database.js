@@ -28,25 +28,27 @@ db.exec(`
         unit_fee REAL,
         total_amount REAL,
         cash_amount REAL,
-        card_amount REAL,
+        card_amount REAL DEFAULT 0,
         payment_method TEXT, -- 'cash', 'credit_card', 'mixed'
         pos_status TEXT DEFAULT 'na', -- 'na', 'pending', 'collected', 'cancelled'
         pos_expected_date TEXT,
         pos_collected_date TEXT,
         note TEXT,
+        is_deleted INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
     -- Giderler tablosu
     CREATE TABLE IF NOT EXISTS expense (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date TEXT DEFAULT (date('now')),
+        date DATE DEFAULT CURRENT_DATE,
         category TEXT,
         description TEXT,
         amount REAL,
         payment_method TEXT,
         document_no TEXT,
         note TEXT,
+        is_deleted INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -78,7 +80,9 @@ const applyMigrations = () => {
     const columns = [
         { table: 'income', column: 'pos_status', type: 'TEXT DEFAULT "na"' },
         { table: 'income', column: 'pos_expected_date', type: 'TEXT' },
-        { table: 'income', column: 'pos_collected_date', type: 'TEXT' }
+        { table: 'income', column: 'pos_collected_date', type: 'TEXT' },
+        { table: 'income', column: 'is_deleted', type: 'INTEGER DEFAULT 0' },
+        { table: 'expense', column: 'is_deleted', type: 'INTEGER DEFAULT 0' }
     ];
 
     columns.forEach(m => {
