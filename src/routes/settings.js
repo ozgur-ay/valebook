@@ -62,7 +62,18 @@ router.post('/categories', (req, res) => {
 router.delete('/categories/:id', (req, res) => {
     try {
         const { id } = req.params;
-        db.prepare('DELETE FROM expense_categories WHERE id = ? AND is_default = 0').run(id);
+        
+        const category = db.prepare('SELECT name FROM expense_categories WHERE id = ?').get(id);
+        if (!category) {
+            return res.status(404).json({ error: 'Kategori bulunamadı.' });
+        }
+
+        const countRow = db.prepare('SELECT COUNT(*) as cnt FROM expense WHERE category = ?').get(category.name);
+        if (countRow.cnt > 0) {
+            return res.status(400).json({ error: 'Bu kategoriyle ilişkili gider kayıtları bulunmaktadır. Öncelikle ilişkili giderleri silmelisiniz.' });
+        }
+
+        db.prepare('DELETE FROM expense_categories WHERE id = ?').run(id);
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });

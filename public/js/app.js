@@ -50,7 +50,10 @@ const App = {
                     ...options.headers
                 }
             });
-            if (!response.ok) throw new Error('API request failed');
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || 'API request failed');
+            }
             return await response.json();
         } catch (error) {
             console.error('API Error:', error);

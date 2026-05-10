@@ -54,8 +54,8 @@ const Settings = {
                 const div = document.createElement('div');
                 div.className = 'category-item';
                 div.innerHTML = `
-                    <span>${cat.name}</span>
-                    ${cat.is_default ? '<small>(Varsayılan)</small>' : `<button class="btn-sm btn-danger" onclick="Settings.deleteCategory(${cat.id})">Sil</button>`}
+                    <span>${cat.name} ${cat.is_default ? '<small>(Varsayılan)</small>' : ''}</span>
+                    <button class="btn-sm btn-danger" onclick="Settings.deleteCategory(${cat.id})">Sil</button>
                 `;
                 list.appendChild(div);
             });
@@ -87,7 +87,7 @@ const Settings = {
             await App.fetchAPI(`/settings/categories/${id}`, { method: 'DELETE' });
             await this.loadCategories();
         } catch (error) {
-            alert('Silme işlemi başarısız.');
+            alert(error.message || 'Silme işlemi başarısız.');
         }
     },
 
