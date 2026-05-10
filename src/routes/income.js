@@ -109,8 +109,8 @@ router.post('/collect-amount', (req, res) => {
         // Tahsilatı bekleyen veya eksik tahsil edilmiş tüm POS kayıtlarını getir (En eski tarihten başla)
         const pending = db.prepare(`
             SELECT * FROM income 
-            WHERE payment_method IN ("credit_card", "mixed") 
-            AND pos_status != "collected" 
+            WHERE payment_method IN ('credit_card', 'mixed') 
+            AND pos_status != 'collected' 
             AND is_deleted = 0 
             ORDER BY date ASC, id ASC
         `).all();
@@ -169,7 +169,7 @@ router.post('/collect-all-pos', (req, res) => {
             SET pos_status = 'collected', 
                 pos_collected_date = ?, 
                 pos_collected_amount = card_amount * (1 - ? / 100)
-            WHERE payment_method IN ("credit_card", "mixed") 
+            WHERE payment_method IN ('credit_card', 'mixed') 
             AND pos_status != 'collected' 
             AND is_deleted = 0
         `).run(new Date().toISOString().split('T')[0], rate);

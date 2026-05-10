@@ -33,8 +33,8 @@ router.get('/today', (req, res) => {
         const commissionSetting = db.prepare('SELECT value FROM settings WHERE key = "pos_commission_rate"').get();
         const rate = commissionSetting ? parseFloat(commissionSetting.value) : 0;
         
-        const pendingCardTotal = db.prepare('SELECT SUM(card_amount) as total FROM income WHERE is_deleted = 0 AND pos_status != "collected"').get().total || 0;
-        const pendingCollectedPart = db.prepare('SELECT SUM(pos_collected_amount) as total FROM income WHERE is_deleted = 0 AND pos_status != "collected"').get().total || 0;
+        const pendingCardTotal = db.prepare("SELECT SUM(card_amount) as total FROM income WHERE is_deleted = 0 AND pos_status != 'collected'").get().total || 0;
+        const pendingCollectedPart = db.prepare("SELECT SUM(pos_collected_amount) as total FROM income WHERE is_deleted = 0 AND pos_status != 'collected'").get().total || 0;
         const pendingNetVal = (pendingCardTotal * (1 - rate / 100)) - pendingCollectedPart;
 
         res.json({
