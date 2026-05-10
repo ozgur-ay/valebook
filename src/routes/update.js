@@ -29,10 +29,22 @@ router.get('/check', async (req, res) => {
         
         let latestVersion = pkg.version;
         if (Array.isArray(tags) && tags.length > 0) {
-            latestVersion = tags[0].name.replace('v', '');
+            // Semantik versiyon sorting (v1.1.30 > v1.1.9)
+            const sortedTags = tags
+                .map(t => t.name.replace('v', ''))
+                .sort((a, b) => {
+                    const partsA = a.split('.').map(Number);
+                    const partsB = b.split('.').map(Number);
+                    for (let i = 0; i < 3; i++) {
+                        if (partsA[i] > partsB[i]) return -1;
+                        if (partsA[i] < partsB[i]) return 1;
+                    }
+                    return 0;
+                });
+            latestVersion = sortedTags[0];
         }
 
-        // Versiyon karşılaştırma: Eğer GitHub'daki sürüm yerelden farklıysa (genelde büyükse) güncelleme var demektir.
+        // Versiyon karşılaştırma
         const isNewer = latestVersion !== pkg.version;
         res.json({
             available: isNewer,
