@@ -42,7 +42,7 @@
       "public/**/*",
       "src/**/*",
       "build/icon.png",
-      "KULLANIM_KILAVUZU.*"
+      "*.txt"
     ],
     "win": {
       "target": ["nsis"],
