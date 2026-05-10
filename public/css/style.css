@@ -306,6 +306,17 @@ input[readonly] {
     background-color: rgba(15, 23, 42, 0.2);
     cursor: not-allowed;
 }
+ 
+/* Custom Date Picker Styles */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+ 
+input[type="date"] {
+    position: relative;
+    cursor: pointer;
+}
 
 /* Buttons */
 .btn {

@@ -48,6 +48,20 @@ const Income = {
 
     setupForm() {
         const form = document.getElementById('incomeForm');
+        const dateInput = document.getElementById('date');
+        
+        // Tarih hücresine tıklandığında takvimi aç
+        dateInput.addEventListener('click', () => {
+            try {
+                if (typeof dateInput.showPicker === 'function') {
+                    dateInput.showPicker();
+                }
+            } catch (e) {
+                console.warn('showPicker not supported');
+            }
+        });
+
+        if (!form) return;
         const vehicleInput = document.getElementById('vehicleCount');
         const feeInput = document.getElementById('unitFee');
         const totalInput = document.getElementById('totalAmount');

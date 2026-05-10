@@ -56,6 +56,20 @@ const Expense = {
 
     setupForm() {
         const form = document.getElementById('expenseForm');
+        const dateInput = document.getElementById('date');
+
+        // Tarih hücresine tıklandığında takvimi aç
+        if (dateInput) {
+            dateInput.addEventListener('click', () => {
+                try {
+                    if (typeof dateInput.showPicker === 'function') {
+                        dateInput.showPicker();
+                    }
+                } catch (e) {
+                    console.warn('showPicker not supported');
+                }
+            });
+        }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
