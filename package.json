@@ -2,10 +2,12 @@
   "name": "valebook",
   "version": "1.0.1",
   "description": "Vale Cafe Parking Cash Register Application",
-  "main": "server.js",
+  "main": "main.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "electron .",
+    "dev": "nodemon server.js",
+    "build": "electron-builder -w",
+    "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [
     "valet",
@@ -17,11 +19,38 @@
   "license": "ISC",
   "dependencies": {
     "better-sqlite3": "^11.10.0",
+    "electron-updater": "^6.8.3",
     "exceljs": "^4.4.0",
     "express": "^4.22.1",
     "open": "^10.2.0"
   },
   "devDependencies": {
+    "electron": "^42.0.1",
+    "electron-builder": "^26.8.1",
     "nodemon": "^3.1.0"
+  },
+  "build": {
+    "appId": "com.valebook.app",
+    "productName": "ValeBook",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": ["nsis"],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "runAfterFinish": true
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "ozgur-ay",
+        "repo": "valebook"
+      }
+    ]
   }
 }

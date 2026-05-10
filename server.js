@@ -31,12 +31,14 @@ app.get('*', (req, res) => {
 app.listen(PORT, async () => {
     console.log(`ValeBook sunucusu http://localhost:${PORT} portunda çalışıyor.`);
     
-    // Tarayıcıyı otomatik açmak için (sadece sunucu başladığında)
-    try {
-        const { default: open } = await import('open');
-        await open(`http://localhost:${PORT}`);
-    } catch (err) {
-        console.error('Tarayıcı otomatik açılamadı:', err);
+    // Tarayıcıyı otomatik açmak için (sadece sunucu başladığında ve Electron ortamı değilse)
+    if (!process.versions || !process.versions.electron) {
+        try {
+            const { default: open } = await import('open');
+            await open(`http://localhost:${PORT}`);
+        } catch (err) {
+            console.error('Tarayıcı otomatik açılamadı:', err);
+        }
     }
 });
 
