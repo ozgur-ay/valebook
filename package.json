@@ -6,8 +6,7 @@
   "scripts": {
     "start": "electron .",
     "dev": "nodemon server.js",
-    "build": "electron-builder -w",
-    "postinstall": "electron-builder install-app-deps"
+    "build": "electron-builder -w"
   },
   "keywords": [
     "valet",
