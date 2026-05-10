@@ -169,7 +169,6 @@ router.post('/collect-all-pos', (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-});
 
 // Son yapılan tahsilat işlemini geri al
 router.post('/undo-collection', (req, res) => {

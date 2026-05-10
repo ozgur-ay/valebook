@@ -97,12 +97,25 @@ const POS = {
             if (res.processed_updates > 0) {
                 App.showToast(`${res.processed_updates} işlem güncellendi.`);
                 amountInput.value = '';
+                document.getElementById('btnUndoCollection').style.display = 'inline-flex';
                 await this.init();
             } else {
                 App.showToast('Tahsil edilecek bekleyen işlem bulunamadı.', 'info');
             }
         } catch (e) {
             App.showToast('Hata oluştu: ' + e.message, 'danger');
+        }
+    },
+
+    async undoCollection() {
+        if (!confirm('Son tahsilat işlemini geri almak istediğinize emin misiniz?')) return;
+        try {
+            await App.fetchAPI('/income/undo-collection', { method: 'POST' });
+            document.getElementById('btnUndoCollection').style.display = 'none';
+            App.showToast('Tahsilat geri alındı.', 'warning');
+            await this.init();
+        } catch (e) {
+            App.showToast('Geri alma başarısız oldu.', 'danger');
         }
     },
 
@@ -115,6 +128,7 @@ const POS = {
                     pos_collected_date: new Date().toISOString().split('T')[0]
                 })
             });
+            document.getElementById('btnUndoCollection').style.display = 'inline-flex';
             App.showToast('Tahsilat kaydedildi.');
             await this.loadPending();
         } catch (e) {
@@ -129,6 +143,7 @@ const POS = {
         // Şimdilik backend'e toplu endpoint ekleyelim daha sağlıklı olur.
         try {
             await App.fetchAPI('/income/collect-all-pos', { method: 'POST' });
+            document.getElementById('btnUndoCollection').style.display = 'inline-flex';
             await this.loadPending();
             App.showToast('Tümü tahsil edildi.');
         } catch (e) {
