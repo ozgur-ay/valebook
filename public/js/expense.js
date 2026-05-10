@@ -183,6 +183,7 @@ const Expense = {
                             <tr>
                                 <th>Kategori</th>
                                 <th>Açıklama</th>
+                                <th>Ödeme</th>
                                 <th>Tutar</th>
                             </tr>
                         </thead>
@@ -190,11 +191,13 @@ const Expense = {
             `;
 
             items.forEach(itemStr => {
-                const [cat, desc, amt] = itemStr.split(':::');
+                const [cat, desc, amt, method] = itemStr.split(':::');
+                const methodText = method === 'cash' ? 'Nakit' : 'Kredi Kartı';
                 detailHtml += `
                     <tr>
                         <td><span class="category-badge">${cat}</span></td>
                         <td>${desc || '-'}</td>
+                        <td style="font-size: 0.75rem; color: var(--text-gray)">${methodText}</td>
                         <td class="text-danger">-${App.formatCurrency(parseFloat(amt))}</td>
                     </tr>
                 `;
