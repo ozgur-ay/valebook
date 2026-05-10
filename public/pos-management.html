@@ -46,16 +46,20 @@
 
                 <div class="stats-grid">
                     <div class="glass-card stat-card">
-                        <span class="label">Toplam Bekleyen (Brüt)</span>
-                        <div class="value" id="pendingGross">₺0,00</div>
-                    </div>
-                    <div class="glass-card stat-card highlight">
-                        <span class="label">Tahsil Edilen</span>
-                        <div class="value" id="totalCollected">₺0,00</div>
+                        <span class="label">Bekleyen (Brüt)</span>
+                        <div class="value" id="pendingGross">₺0</div>
                     </div>
                     <div class="glass-card stat-card">
-                        <span class="label">Kalan Alacak (Net)</span>
-                        <div class="value neon-text-blue" id="pendingTotal">₺0,00</div>
+                        <span class="label">Banka Kesintisi</span>
+                        <div class="value text-danger" id="pendingCommission">₺0</div>
+                    </div>
+                    <div class="glass-card stat-card highlight">
+                        <span class="label">Beklenen (Net)</span>
+                        <div class="value neon-text-blue" id="pendingTotal">₺0</div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <span class="label">Tahsil Edilen (Net)</span>
+                        <div class="value text-success" id="totalCollected">₺0</div>
                     </div>
                 </div>
 
@@ -72,9 +76,10 @@
                         <table id="pendingPosTable">
                             <thead>
                                 <tr>
-                                    <th>İşlem Tarihi</th>
-                                    <th>Brüt Tutar</th>
-                                    <th>Beklenen (Net)</th>
+                                    <th>Tarih</th>
+                                    <th>Brüt</th>
+                                    <th>Kesinti</th>
+                                    <th>Net Beklenen</th>
                                     <th>Tahsil Edilen</th>
                                     <th>Kalan</th>
                                     <th>Durum</th>

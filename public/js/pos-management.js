@@ -58,45 +58,56 @@ const POS = {
         const body = document.getElementById('pendingPosBody');
         const totalDisplay = document.getElementById('pendingTotal');
         const grossDisplay = document.getElementById('pendingGross');
+        const commissionDisplay = document.getElementById('pendingCommission');
         const collectedDisplay = document.getElementById('totalCollected');
         
         if (!body) return;
         body.innerHTML = '';
         
         if (!data || data.length === 0) {
-            body.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 3rem; color: var(--text-gray);">Bekleyen bekleyen işlem bulunamadı.</td></tr>';
-            if (totalDisplay) totalDisplay.innerText = "₺0,00";
-            if (grossDisplay) grossDisplay.innerText = "₺0,00";
-            if (collectedDisplay) collectedDisplay.innerText = "₺0,00";
+            body.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 3rem; color: var(--text-gray);">Bekleyen işlem bulunamadı.</td></tr>';
+            if (totalDisplay) totalDisplay.innerText = "₺0";
+            if (grossDisplay) grossDisplay.innerText = "₺0";
+            if (commissionDisplay) commissionDisplay.innerText = "₺0";
+            if (collectedDisplay) collectedDisplay.innerText = "₺0";
             return;
         }
 
         let grandTotalNet = 0;
         let grandTotalGross = 0;
+        let grandTotalCommission = 0;
         let grandTotalCollected = 0;
         const rate = parseFloat(this.settings.pos_commission_rate) || 0;
 
         data.forEach(item => {
             try {
-                const netExpected = (item.card_amount || 0) * (1 - rate / 100);
+                const gross = item.card_amount || 0;
+                const commission = gross * (rate / 100);
+                const netExpected = gross - commission;
                 const collected = item.pos_collected_amount || 0;
                 const remaining = netExpected - collected;
                 
-                grandTotalGross += (item.card_amount || 0);
-                grandTotalNet += Math.max(0, remaining);
+                if (item.pos_status === 'pending') {
+                    grandTotalGross += gross;
+                    grandTotalCommission += commission;
+                    grandTotalNet += Math.max(0, remaining);
+                }
                 grandTotalCollected += collected;
 
-                const isFullyCollected = remaining <= 1; // 1 TL altı toleransı
+                const isFullyCollected = item.pos_status === 'collected' || remaining <= 1;
                 const statusText = isFullyCollected ? '✅ Tahsil Edildi' : (collected > 0 ? '⏳ Kısmi' : '🆕 Bekliyor');
                 const statusClass = isFullyCollected ? 'text-success' : (collected > 0 ? 'text-warning' : 'text-primary');
 
                 const tr = document.createElement('tr');
+                if (isFullyCollected) tr.style.opacity = '0.7';
+
                 tr.innerHTML = `
                     <td>${item.date ? new Date(item.date).toLocaleDateString('tr-TR') : '-'}</td>
-                    <td>₺${Math.round(item.card_amount || 0).toLocaleString('tr-TR')}</td>
-                    <td>₺${Math.round(netExpected).toLocaleString('tr-TR')}</td>
+                    <td>₺${Math.round(gross).toLocaleString('tr-TR')}</td>
+                    <td class="text-danger">₺${Math.round(commission).toLocaleString('tr-TR')}</td>
+                    <td class="neon-text-blue">₺${Math.round(netExpected).toLocaleString('tr-TR')}</td>
                     <td class="text-success">₺${Math.round(collected).toLocaleString('tr-TR')}</td>
-                    <td class="neon-text-blue">₺${Math.round(Math.max(0, remaining)).toLocaleString('tr-TR')}</td>
+                    <td>₺${Math.round(Math.max(0, remaining)).toLocaleString('tr-TR')}</td>
                     <td class="${statusClass}">${statusText}</td>
                 `;
                 body.appendChild(tr);
@@ -105,9 +116,10 @@ const POS = {
             }
         });
 
-        if (totalDisplay) totalDisplay.innerText = Math.round(grandTotalNet).toLocaleString('tr-TR') + " ₺";
-        if (grossDisplay) grossDisplay.innerText = Math.round(grandTotalGross).toLocaleString('tr-TR') + " ₺";
-        if (collectedDisplay) collectedDisplay.innerText = Math.round(grandTotalCollected).toLocaleString('tr-TR') + " ₺";
+        if (totalDisplay) totalDisplay.innerText = "₺" + Math.round(grandTotalNet).toLocaleString('tr-TR');
+        if (grossDisplay) grossDisplay.innerText = "₺" + Math.round(grandTotalGross).toLocaleString('tr-TR');
+        if (commissionDisplay) commissionDisplay.innerText = "₺" + Math.round(grandTotalCommission).toLocaleString('tr-TR');
+        if (collectedDisplay) collectedDisplay.innerText = "₺" + Math.round(grandTotalCollected).toLocaleString('tr-TR');
     },
 
     async collectAmount() {

@@ -85,10 +85,18 @@ router.get('/debug-db', (req, res) => {
     }
 });
 
-// Bekleyen POS işlemlerini getir (Ham veri)
+// Bekleyen ve Son Tahsil Edilen POS işlemlerini getir (Şeffaflık için)
 router.get('/pending-pos', (req, res) => {
     try {
-        const rows = db.prepare("SELECT * FROM income WHERE payment_method IN ('credit_card', 'mixed') AND pos_status = 'pending' AND is_deleted = 0 ORDER BY date DESC").all();
+        // En eski bekleyenlerden en yeni tahsil edilenlere doğru
+        const rows = db.prepare(`
+            SELECT * FROM income 
+            WHERE payment_method IN ('credit_card', 'mixed') 
+            AND is_deleted = 0 
+            AND (pos_status = 'pending' OR (pos_status = 'collected' AND pos_collected_date >= date('now', '-7 days')))
+            ORDER BY pos_status DESC, date DESC 
+            LIMIT 50
+        `).all();
         res.json(rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
