@@ -31,6 +31,18 @@ async function exportToExcel(incomeData, expenseData, fileName = 'ValeBook_Rapor
         payment_method: mapPaymentMethod(row.payment_method)
     }));
 
+    // --- Gelir Sayfası ---
+    const incomeSheet = workbook.addWorksheet('Gelirler');
+    incomeSheet.columns = [
+        { header: 'Tarih', key: 'date', width: 15 },
+        { header: 'Araç Sayısı', key: 'vehicle_count', width: 12 },
+        { header: 'Birim Ücret', key: 'unit_fee', width: 12 },
+        { header: 'Toplam Tutar', key: 'total_amount', width: 15 },
+        { header: 'Nakit', key: 'cash_amount', width: 12 },
+        { header: 'Kart (POS)', key: 'card_amount', width: 12 },
+        { header: 'Ödeme Yöntemi', key: 'payment_method', width: 15 },
+        { header: 'Not', key: 'note', width: 30 }
+    ];
     incomeSheet.addRows(processedIncomeData);
 
     // --- Gider Sayfası ---
