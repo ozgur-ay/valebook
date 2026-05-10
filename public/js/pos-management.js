@@ -12,9 +12,17 @@ const POS = {
 
     async loadSettings() {
         try {
-            this.settings = await App.fetchAPI('/settings');
+            const settingsData = await App.fetchAPI('/settings');
+            // Settings array olarak geliyorsa map'e çevir
+            if (Array.isArray(settingsData)) {
+                this.settings = {};
+                settingsData.forEach(s => this.settings[s.key] = s.value);
+            } else {
+                this.settings = settingsData || {};
+            }
         } catch (e) {
             console.error('Settings load error', e);
+            this.settings = {};
         }
     },
 
@@ -37,46 +45,60 @@ const POS = {
     },
 
     renderPending(data) {
+        console.log("Rendering pending POS data:", data);
         const body = document.getElementById('pendingPosBody');
         const totalDisplay = document.getElementById('pendingTotal');
         const grossDisplay = document.getElementById('pendingGross');
         const collectedDisplay = document.getElementById('totalCollected');
         
+        if (!body) return;
         body.innerHTML = '';
         
+        if (!data || data.length === 0) {
+            body.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 3rem; color: var(--text-gray);">Bekleyen bekleyen işlem bulunamadı.</td></tr>';
+            if (totalDisplay) totalDisplay.innerText = "₺0,00";
+            if (grossDisplay) grossDisplay.innerText = "₺0,00";
+            if (collectedDisplay) collectedDisplay.innerText = "₺0,00";
+            return;
+        }
+
         let grandTotalNet = 0;
         let grandTotalGross = 0;
         let grandTotalCollected = 0;
         const rate = parseFloat(this.settings.pos_commission_rate) || 0;
 
         data.forEach(item => {
-            const netExpected = item.card_amount * (1 - rate / 100);
-            const collected = item.pos_collected_amount || 0;
-            const remaining = netExpected - collected;
-            
-            grandTotalGross += item.card_amount;
-            grandTotalNet += remaining;
-            grandTotalCollected += collected;
+            try {
+                const netExpected = (item.card_amount || 0) * (1 - rate / 100);
+                const collected = item.pos_collected_amount || 0;
+                const remaining = netExpected - collected;
+                
+                grandTotalGross += (item.card_amount || 0);
+                grandTotalNet += Math.max(0, remaining);
+                grandTotalCollected += collected;
 
-            const isFullyCollected = remaining <= 0.01;
-            const statusText = isFullyCollected ? '✅ Tahsil Edildi' : (collected > 0 ? '⏳ Kısmi' : '🆕 Bekliyor');
-            const statusClass = isFullyCollected ? 'text-success' : (collected > 0 ? 'text-warning' : 'text-primary');
+                const isFullyCollected = remaining <= 0.01;
+                const statusText = isFullyCollected ? '✅ Tahsil Edildi' : (collected > 0 ? '⏳ Kısmi' : '🆕 Bekliyor');
+                const statusClass = isFullyCollected ? 'text-success' : (collected > 0 ? 'text-warning' : 'text-primary');
 
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${new Date(item.date).toLocaleDateString('tr-TR')}</td>
-                <td>₺${item.card_amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
-                <td>₺${netExpected.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
-                <td class="text-success">₺${collected.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
-                <td class="neon-text-blue">₺${Math.max(0, remaining).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
-                <td class="${statusClass}">${statusText}</td>
-            `;
-            body.appendChild(tr);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.date ? new Date(item.date).toLocaleDateString('tr-TR') : '-'}</td>
+                    <td>₺${(item.card_amount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
+                    <td>₺${netExpected.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
+                    <td class="text-success">₺${collected.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
+                    <td class="neon-text-blue">₺${Math.max(0, remaining).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
+                    <td class="${statusClass}">${statusText}</td>
+                `;
+                body.appendChild(tr);
+            } catch (err) {
+                console.error("Row render error:", err, item);
+            }
         });
 
-        totalDisplay.innerText = grandTotalNet.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
-        grossDisplay.innerText = grandTotalGross.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
-        collectedDisplay.innerText = grandTotalCollected.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+        if (totalDisplay) totalDisplay.innerText = grandTotalNet.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + " ₺";
+        if (grossDisplay) grossDisplay.innerText = grandTotalGross.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + " ₺";
+        if (collectedDisplay) collectedDisplay.innerText = grandTotalCollected.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + " ₺";
     },
 
     async collectAmount() {

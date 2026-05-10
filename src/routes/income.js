@@ -88,7 +88,7 @@ router.get('/debug-db', (req, res) => {
 // Bekleyen POS işlemlerini getir (Ham veri)
 router.get('/pending-pos', (req, res) => {
     try {
-        const rows = db.prepare('SELECT * FROM income WHERE payment_method IN ("credit_card", "mixed") AND pos_status = "pending" AND is_deleted = 0 ORDER BY date DESC').all();
+        const rows = db.prepare("SELECT * FROM income WHERE payment_method IN ('credit_card', 'mixed') AND pos_status = 'pending' AND is_deleted = 0 ORDER BY date DESC").all();
         res.json(rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
