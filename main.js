@@ -54,8 +54,8 @@ function createWindow() {
 }
 
 function initAutoUpdater() {
-    // Arka planda indirmeyi aktif ediyoruz, bu daha stabil bir yöntemdir.
-    autoUpdater.autoDownload = true;
+    // Arka planda indirmeyi isteğe bağlı yapıyoruz.
+    autoUpdater.autoDownload = false; 
 
     autoUpdater.on('checking-for-update', () => {
         console.log('Güncelleme kontrol ediliyor...');
@@ -65,6 +65,17 @@ function initAutoUpdater() {
     autoUpdater.on('update-available', (info) => {
         console.log('Yeni güncelleme bulundu:', info.version);
         if (mainWindow) mainWindow.webContents.send('update-status', { type: 'available', version: info.version });
+        
+        dialog.showMessageBox(mainWindow, {
+            type: 'info',
+            title: 'Yeni Sürüm Mevcut',
+            message: `Yeni bir sürüm (v${info.version}) mevcut. Şimdi indirmek istiyor musunuz?`,
+            buttons: ['İndir', 'Daha Sonra']
+        }).then((result) => {
+            if (result.response === 0) {
+                autoUpdater.downloadUpdate();
+            }
+        });
     });
 
     autoUpdater.on('update-not-available', (info) => {
