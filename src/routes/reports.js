@@ -32,7 +32,11 @@ router.get('/summary', (req, res) => {
             GROUP BY category
         `).all(from, to);
 
-        const totalExpense = expense.reduce((sum, item) => sum + item.total_amount, 0);
+        const rawExpenses = db.prepare(`
+            SELECT * FROM expense
+            WHERE date BETWEEN ? AND ? AND is_deleted = 0
+            ORDER BY date DESC
+        `).all(from, to);
 
         res.json({
             summary: {
@@ -43,7 +47,8 @@ router.get('/summary', (req, res) => {
                 total_expense: totalExpense,
                 net_profit: (income.total_income || 0) - totalExpense
             },
-            expense_details: expense
+            expense_details: expense,
+            raw_expenses: rawExpenses
         });
     } catch (error) {
         res.status(500).json({ error: error.message });

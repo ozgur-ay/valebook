@@ -31,16 +31,32 @@ const Reports = {
             const netEl = document.getElementById('reportNetStatus');
             netEl.style.color = data.summary.net_profit < 0 ? 'var(--danger)' : 'var(--success)';
 
-            // Gider tablosu
-            const tbody = document.querySelector('#expenseSummaryTable tbody');
-            tbody.innerHTML = '';
+            // Gider tablosu (Özet)
+            const tbodySummary = document.querySelector('#expenseSummaryTable tbody');
+            tbodySummary.innerHTML = '';
             data.expense_details.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${item.category}</td>
                     <td>${App.formatCurrency(item.total_amount)}</td>
                 `;
-                tbody.appendChild(tr);
+                tbodySummary.appendChild(tr);
+            });
+
+            // Gider tablosu (Detaylı)
+            const tbodyRaw = document.querySelector('#rawExpenseTable tbody');
+            tbodyRaw.innerHTML = '';
+            data.raw_expenses.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${new Date(item.date).toLocaleDateString('tr-TR')}</td>
+                    <td>${item.category}</td>
+                    <td>${item.description || '-'}</td>
+                    <td class="text-danger">-${App.formatCurrency(item.amount)}</td>
+                    <td>${item.payment_method === 'cash' ? 'Nakit' : 'Kredi Kartı'}</td>
+                    <td>${item.document_no || '-'}</td>
+                `;
+                tbodyRaw.appendChild(tr);
             });
 
         } catch (error) {

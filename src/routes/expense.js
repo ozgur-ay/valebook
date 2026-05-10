@@ -13,7 +13,8 @@ router.get('/', (req, res) => {
         let baseQuery = `
             SELECT 
                 date,
-                GROUP_CONCAT(category || ': ' || amount, ' | ') as description,
+                'Günlük Toplam' as category,
+                'İşletme Giderleri Toplamı' as description,
                 SUM(amount) as amount
             FROM expense 
             WHERE is_deleted = 0
