@@ -83,6 +83,8 @@ body {
 
 /* Main Content */
 .content {
+    flex: 1;
+    margin-left: 260px;
     padding: 2rem;
     padding-bottom: 4rem;
     transform: translateZ(0); /* GPU Hızlandırma - Katman Çakışmalarını Önler */
