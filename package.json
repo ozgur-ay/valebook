@@ -35,6 +35,15 @@
     "directories": {
       "output": "dist"
     },
+    "files": [
+      "main.js",
+      "server.js",
+      "package.json",
+      "public/**/*",
+      "src/**/*",
+      "build/icon.png",
+      "KULLANIM_KILAVUZU.*"
+    ],
     "win": {
       "target": ["nsis"],
       "icon": "build/icon.png"

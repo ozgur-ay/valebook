@@ -3,3 +3,9 @@ valebook.db
 valebook.db-journal
 .env
 .DS_Store
+dist/
+release/
+.gemini/
+brain/
+tmp/
+*.log
