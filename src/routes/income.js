@@ -155,7 +155,7 @@ router.post('/collect-amount', (req, res) => {
                 id: item.id,
                 collected: newCollectedTotal,
                 status: newStatus,
-                date: new Date().toISOString().split('T')[0]
+                date: new Date().toISOString() // Milisaniye hassasiyetiyle batch ayırımı sağlar
             });
         }
 
@@ -190,7 +190,7 @@ router.post('/collect-all-pos', (req, res) => {
             WHERE payment_method IN ('credit_card', 'mixed') 
             AND pos_status != 'collected' 
             AND is_deleted = 0
-        `).run(new Date().toISOString().split('T')[0], rate);
+        `).run(new Date().toISOString(), rate);
 
         res.json({ success: true });
     } catch (error) {
