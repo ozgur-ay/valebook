@@ -83,6 +83,11 @@ function initAutoUpdater() {
 
     autoUpdater.on('error', (err) => {
         console.error('Güncelleyici hatası:', err);
+        // latest.yml hatasını renderer'a gönderme (kullanıcıyı korkutmamak için)
+        if (err.message && err.message.includes('latest.yml')) {
+            console.log('latest.yml bulunamadı hatası sessize alındı.');
+            return;
+        }
         updaterState = { type: 'error', message: err.message };
         if (mainWindow) mainWindow.webContents.send('update-status', updaterState);
     });
