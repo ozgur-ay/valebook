@@ -1,6 +1,6 @@
 # ValeBook Kullanım Kılavuzu 📘
 
-ValeBook, otopark ve kafe vale işletmeleri için özel olarak tasarlanmış, kullanımı son derece kolay ve hızlı bir "Kasa ve Finans Yönetim" masaüstü uygulamasıdır. 
+ValeBook, otopark ve kafe vale işletmeleri için özel olarak tasarlanmış, profesyonel bir "Kasa ve Finans Yönetim" masaüstü uygulamasıdır. 
 
 ---
 
@@ -8,61 +8,49 @@ ValeBook, otopark ve kafe vale işletmeleri için özel olarak tasarlanmış, ku
 Uygulama kurulum gerektirmez, doğrudan çalıştırılabilir bir formattadır.
 1. İndirdiğiniz **`ValeBook_Setup.exe`** dosyasına çift tıklayın.
 2. Uygulama otomatik olarak kurulup **tam ekran** olarak açılacaktır.
-3. Uygulama her açıldığında internete (arka planda) bağlanır ve bir güncelleme varsa size uyarı verir. (Eğer internet yoksa da sorunsuz bir şekilde internetsiz modda çalışmaya devam eder).
+3. Uygulama her açıldığında internete (arka planda) bağlanır ve bir güncelleme varsa size uyarı verir. (Eğer internet yoksa da sorunsuz bir şekilde çalışmaya devam eder).
 
 ---
 
 ## 2. İlk Adım: Ayarlar Menüsü ⚙️
 Uygulamayı kullanmaya başlamadan önce, sol menüden **"Ayarlar"** sekmesine girmelisiniz.
 - **İşletme Adı:** Otoparkınızın veya kafenizin adını buraya yazın.
-- **Otopark Kapasitesi:** İşletmenizin kapasitesini belirtin.
-- **Standart Vale Ücreti:** Araç başına alınan standart ücreti buraya girin (Örn: 100 ₺). Siz gelir girerken sistem otomatik olarak bu sayıyı matematiksel olarak çarpacaktır.
-- **Gider Kategorileri:** İşletmenizdeki masraf kalemlerini (Örn: Aidat, Maaş, Su, Yemek) buradan ayarlayabilir, yeni kategori oluşturabilir veya sağdaki "Sil" butonuyla gereksizleri silebilirsiniz. (Varsayılanları geri yüklemek için de alt kısımdaki butonu kullanabilirsiniz).
+- **Banka POS Komisyon Oranı (%):** Kredi kartı ödemelerinden bankanın kestiği oranı girin (Örn: 1.5). Bu oran, POS Takibi ekranında alacağınızı otomatik hesaplamak için kullanılır.
+- **Gider Kategorileri:** İşletmenizdeki masraf kalemlerini (Örn: Maaş, Kira, Mutfak) buradan yönetebilirsiniz.
 
 ---
 
-## 3. Gelir Girişi (Hasılat Kaydı) 💰
-Araçlardan alınan otopark/vale ücretlerinin sisteme girildiği bölümdür.
-1. Sol menüden **"Gelir Girişi"** ekranına tıklayın.
-2. **Araç Sayısı:** Kaç aracın ücretini aynı anda girdiğinizi yazın (Standart olarak "1" gelir).
-3. **Birim Ücret:** Ayarlar ekranından otomatik gelen ücrettir (isterseniz o an değiştirebilirsiniz).
-4. **Ödeme Yöntemi:**
-   - **Nakit:** Müşteri elden para verdiyse.
-   - **Kredi Kartı (POS):** Kredi kartı çekildiyse.
-   - **Karışık:** Müşteri ücretin bir kısmını nakit, bir kısmını POS ile verdiyse (ikisini de girmek isterseniz not kısmına yazarak takip edebilirsiniz).
-5. **Kaydet** butonuna bastığınızda hasılat kasanıza işlenecek ve sağ taraftaki "Gelir Geçmişi" listesine anında düşecektir.
+## 3. Gelir Girişi ve Veri Güvenliği 💰
+1. **Gelir Girişi:** Araç sayısını ve tutarı girin. POS ödemeleri sistemde "Beklemede" (Bankada) olarak işaretlenir.
+2. **Konsolide Görünüm:** Aynı güne ait tüm girişleriniz tabloda **tek bir satır** olarak toplanır. Böylece karmaşık bir liste yerine derli toplu bir günlük özet görürsünüz.
+3. **Geri Al / İleri Al:** Bir hata yaptıysanız, "Kaydet" yanındaki ok tuşlarını kullanarak yaptığınız son 5 işlemi geri alabilir veya ileri alabilirsiniz. Verileriniz asla kaybolmaz!
 
 ---
 
-## 4. Gider Girişi (Masraf Kaydı) 📉
-İşletme içindeki para çıkışlarının sisteme girildiği bölümdür.
-1. Sol menüden **"Gider Girişi"** ekranına tıklayın.
-2. Açılır menüden harcamanın **Kategori** türünü seçin (Maaş, Elektrik, Kırtasiye vs.)
-3. Harcanan **Tutar**ı girin.
-4. **Belge / Fatura No (İsteğe Bağlı):** Eğer elinizde bir fiş veya fatura varsa, onun numarasını girin. Bu numara rapor ekranında değil, ay sonunda Excel'e indireceğiniz muhasebe belgesinde görünecektir. 
-5. **Açıklama:** Gidere dair detaylı açıklamayı girin (Örn: *Ali usta onarım masrafı*).
-6. **Kaydet** butonuna bastığınız an, bu meblağ gün sonunda kârınızdan düşülmek üzere sisteme işlenir.
+## 4. POS Yönetimi ve Banka Takibi 🏦
+Bu ekran, henüz hesabınıza geçmemiş paraları yönetmenizi sağlar.
+1. Sol menüden **"POS Yönetimi"** sekmesine tıklayın.
+2. **Bankada Bekleyen:** Bankanın elinde tuttuğu toplam alacağınızı (komisyon düşülmüş net rakam) görebilirsiniz.
+3. **Tahsil Et:** Para banka hesabınıza ulaştığında, o satırdaki "Tahsil Et" butonuna basın. Bu işlem, parayı "Bankadan" çıkarıp "Kasaya" (Sıcak Nakit) aktarır.
 
 ---
 
 ## 5. Dashboard (Ana Ekran) 📊
-İşletmenizin o günkü durumunu kuşbakışı gördüğünüz alandır.
-- **Bugünün Kazancı (Nakit vs. Kredi Kartı):** O gün ne kadar para girdiğini gösterir.
-- **Bugünün Gideri:** Günlük toplam çıkışları gösterir.
-- **Net Kâr:** Günlük kazançtan giderlerin düşülmesiyle kasanızda kalan (veya eksiye inen) net parayı ifade eder.
+İşletmenizin finansal sağlığını anlık olarak takip edin:
+- **💵 Kasada Nakit (Bugün):** O gün cebinize giren toplam nakit paradan o günkü giderleri çıkartarak kalan "harcanabilir" bakiyeyi gösterir.
+- **🏦 Bankada Bekleyen:** Henüz nakde dönmemiş kartlı işlemlerin toplamıdır.
+- **📈 Trend Grafiği:** Haftalık nakit ve kart gelirlerinizi interaktif bir grafik üzerinde karşılaştırın.
 
 ---
 
-## 6. Raporlar ve Excel Çıktısı 📋
-Geçmişe yönelik analizler yapmanızı veya verileri muhasebeciye göndermenizi sağlar.
-1. Sol menüden **"Raporlar"** ekranına girin.
-2. İncelemek istediğiniz **Başlangıç** ve **Bitiş Tarihlerini** seçin.
-3. Seçtiğiniz dönemin toplam geliri, dağılımı ve giderleri karşınıza çıkacaktır.
-4. **"Excel'e Aktar"** butonuna basarsanız, sistem size o aralıktaki tüm ayrıntılı alışveriş hareketlerini (ve fatura numaralarını) içeren mükemmel bir **Excel (XLSX)** belgesi teslim edecektir.
+## 6. Gider Girişi ve Raporlama 📉
+- **Giderler:** Harcamalarınızı kategorilere göre girin. Giderleriniz "Sıcak Nakit" bakiyenizden otomatik olarak düşülür.
+- **Raporlar:** İstediğiniz tarih aralığını seçerek Excel (XSLX) çıktısı alın. Excel dosyasında tüm işlem detayları ve POS tahsilat tarihleri yer alır.
 
 ---
 
 ## 7. Uygulamayı Güncelleme 🔄
-Zamanla oluşabilecek yeni özellikleri almak veya hataları düzeltmek için:
-- Uygulamayı ilk açtığınızda ekranda "Yeni bir versiyon yayınlanmış, güncellemek ister misiniz?" şeklinde bir pop-up (ufak pencere) belirir. "Evet" dediğinizde kendi kendini arkada güncel kavuşur.
-- Veya manuel olarak uygulamada **"Ayarlar"** sayfasına girerseniz, en aşağıdaki **Güncellemeleri Kontrol Et** kutucuğunu kullanarak en yeni sürüme geçiş yapabilirsiniz. Verileriniz bu işlem sırasında asla silinmez.
+Uygulama açılışta güncellemeleri otomatik kontrol eder. Veya manuel olarak **Ayarlar** sayfasının altındaki **Güncellemeleri Kontrol Et** butonunu kullanabilirsiniz.
+
+---
+**Mutlu Kazançlar!** 🚀
