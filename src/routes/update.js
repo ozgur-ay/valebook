@@ -23,15 +23,16 @@ router.get('/check', async (req, res) => {
             return res.json({ available: false, current: pkg.version });
         }
 
-        // Bypassing electron-updater cache directly via GitHub API
-        const response = await fetch('https://api.github.com/repos/ozgur-ay/valebook/releases/latest');
-        const data = await response.json();
+        // Bypassing electron-updater cache directly via GitHub Tags API
+        const response = await fetch('https://api.github.com/repos/ozgur-ay/valebook/tags');
+        const tags = await response.json();
         
         let latestVersion = pkg.version;
-        if (data && data.tag_name) {
-            latestVersion = data.tag_name.replace('v', '');
+        if (Array.isArray(tags) && tags.length > 0) {
+            latestVersion = tags[0].name.replace('v', '');
         }
 
+        // Versiyon karşılaştırma: Eğer GitHub'daki sürüm yerelden farklıysa (genelde büyükse) güncelleme var demektir.
         const isNewer = latestVersion !== pkg.version;
         res.json({
             available: isNewer,
