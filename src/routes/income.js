@@ -169,6 +169,44 @@ router.post('/collect-all-pos', (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+});
+
+// Son yapılan tahsilat işlemini geri al
+router.post('/undo-collection', (req, res) => {
+    try {
+        // En son tahsil edilen kayıtların tarihini bul
+        const lastBatch = db.prepare(`
+            SELECT pos_collected_date 
+            FROM income 
+            WHERE pos_status = 'collected' 
+            AND is_deleted = 0 
+            ORDER BY pos_collected_date DESC, id DESC 
+            LIMIT 1
+        `).get();
+
+        if (!lastBatch || !lastBatch.pos_collected_date) {
+            return res.status(404).json({ error: 'Geri alınacak tahsilat bulunamadı.' });
+        }
+
+        // O tarihteki/partideki kayıtları geri al
+        // Not: Gerçek bir 'batch id' olmadığı için şimdilik o günkü tüm son işlemleri çeviriyoruz
+        // Daha hassas olması için son 1 dakika içinde güncellenenleri tercih edebiliriz (eğer timestamp varsa)
+        // Şimdilik basitleştirilmiş mantık:
+        db.prepare(`
+            UPDATE income 
+            SET pos_status = 'pending', 
+                pos_collected_amount = 0, 
+                pos_collected_date = NULL 
+            WHERE pos_collected_date = ? 
+            AND pos_status = 'collected' 
+            AND is_deleted = 0
+        `).run(lastBatch.pos_collected_date);
+
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 // Yeni gelir ekle
 router.post('/', (req, res) => {
