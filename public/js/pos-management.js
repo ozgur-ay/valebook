@@ -149,6 +149,16 @@ const POS = {
         } catch (e) {
             App.showToast('Hata oluştu.');
         }
+    },
+
+    async showDebug() {
+        try {
+            const data = await App.fetchAPI('/income/debug-db');
+            console.table(data);
+            alert("Debugging Data:\n" + JSON.stringify(data.slice(0, 5), null, 2) + "\n\n(Tam liste konsola basıldı - F12)");
+        } catch (e) {
+            alert("Debug failed: " + e.message);
+        }
     }
 };
 

@@ -75,6 +75,16 @@ router.post('/redo', (req, res) => {
     }
 });
 
+// Tanı/Hata Ayıklama Rotası (Tüm Ham Kayıtları Göster)
+router.get('/debug-db', (req, res) => {
+    try {
+        const rows = db.prepare('SELECT id, date, payment_method, pos_status, card_amount, pos_collected_amount FROM income WHERE is_deleted = 0 ORDER BY id DESC LIMIT 50').all();
+        res.json(rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Bekleyen POS işlemlerini getir (Ham veri)
 router.get('/pending-pos', (req, res) => {
     try {
