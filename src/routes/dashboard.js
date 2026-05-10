@@ -23,10 +23,11 @@ router.get('/today', (req, res) => {
         `).get(today);
 
         // --- Toplam Harcanabilir (Sıcak Nakit) ---
-        // Kasa (Nakit) + Tahsil Edilmiş POS - Giderler
-        const totalCashIncome = db.prepare('SELECT SUM(cash_amount) as total FROM income WHERE is_deleted = 0 AND date BETWEEN ? AND ?').get(today, today).total || 0;
-        const totalPosCollected = db.prepare('SELECT SUM(pos_collected_amount) as total FROM income WHERE is_deleted = 0 AND date BETWEEN ? AND ?').get(today, today).total || 0;
-        const totalExpenses = db.prepare('SELECT SUM(amount) as total FROM expense WHERE is_deleted = 0 AND date BETWEEN ? AND ?').get(today, today).total || 0;
+        // Kasa (Nakit) + Tahsil Edilmiş POS (Tahsilat tarihine göre) - Giderler
+        // Not: Nakit gelirler işlem tarihinde kasaya girer, POS ise bankaya yattığı tarihte (pos_collected_date)
+        const totalCashIncome = db.prepare('SELECT SUM(cash_amount) as total FROM income WHERE is_deleted = 0 AND date = ?').get(today).total || 0;
+        const totalPosCollected = db.prepare('SELECT SUM(pos_collected_amount) as total FROM income WHERE is_deleted = 0 AND pos_collected_date = ?').get(today).total || 0;
+        const totalExpenses = db.prepare('SELECT SUM(amount) as total FROM expense WHERE is_deleted = 0 AND date = ?').get(today).total || 0;
         
         // --- Bankada Bekleyen ---
         // (Toplam Bekleyen POS Net) - (Zaten Tahsil Edilmiş)
