@@ -99,15 +99,18 @@ const applyMigrations = () => {
         }
     });
 
-    // --- Veri Düzeltme (v1.1.17) ---
-    // Eğer pos_status 'na' ise ve ödeme yöntemi kart ise 'pending' yap (Eski veriler için)
+    // --- Veri Düzeltme (v1.1.20) ---
+    // Daha kapsayıcı güncelleme: pos_status 'collected' olmayan TÜM kartlı işlemleri 'pending' yap (Eski/Bozuk veriler için)
     db.exec(`
         UPDATE income 
         SET pos_status = 'pending' 
-        WHERE pos_status = 'na' 
+        WHERE (pos_status = 'na' OR pos_status IS NULL OR pos_status = '')
         AND payment_method IN ('credit_card', 'mixed')
         AND is_deleted = 0
     `);
+    
+    // Eğer pos_collected_amount NULL ise 0 yap
+    db.exec(`UPDATE income SET pos_collected_amount = 0 WHERE pos_collected_amount IS NULL`);
 };
 
 applyMigrations();
