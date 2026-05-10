@@ -102,19 +102,36 @@ router.get('/recent', (req, res) => {
 // Grafik Verileri (Haftalık gelir ve Kategori dağılımı)
 router.get('/charts', (req, res) => {
     try {
-        // 1. Son 7 günlük gelir trendi
-        const weeklyIncome = db.prepare(`
+        // 1. Son 7 günün tarihlerini belirle (Eksik günleri 0 ile doldurmak için)
+        const days = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            days.push(d.toISOString().split('T')[0]);
+        }
+
+        // 2. Veritabanından mevcut verileri çek
+        const rawIncome = db.prepare(`
             SELECT 
                 date, 
                 SUM(cash_amount) as cash, 
                 SUM(card_amount) as card 
             FROM income 
-            WHERE date >= date('now', '-7 days')
-            GROUP BY date 
-            ORDER BY date ASC
-        `).all();
+            WHERE date >= ?
+            GROUP BY date
+        `).all(days[0]);
 
-        // 2. Giderlerin kategorilere göre dağılımı
+        // 3. Tarih dizisini baz alarak eksik günleri 0 ile doldur (Trendin sürekliliği için)
+        const weeklyIncome = days.map(date => {
+            const found = rawIncome.find(r => r.date === date);
+            return {
+                date,
+                cash: found ? found.cash : 0,
+                card: found ? found.card : 0
+            };
+        });
+
+        // 4. Giderlerin kategorilere göre dağılımı
         const categoryExpenses = db.prepare(`
             SELECT 
                 category, 
