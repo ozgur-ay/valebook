@@ -59,11 +59,12 @@ function initAutoUpdater() {
 
     autoUpdater.on('checking-for-update', () => {
         console.log('Güncelleme kontrol ediliyor...');
+        if (mainWindow) mainWindow.webContents.send('update-status', { type: 'checking' });
     });
 
     autoUpdater.on('update-available', (info) => {
         console.log('Yeni güncelleme bulundu:', info.version);
-        // İndirme otomatik başladığı için burada sadece logluyoruz.
+        if (mainWindow) mainWindow.webContents.send('update-status', { type: 'available', version: info.version });
     });
 
     autoUpdater.on('update-not-available', (info) => {
@@ -72,6 +73,15 @@ function initAutoUpdater() {
 
     autoUpdater.on('error', (err) => {
         console.error('Güncelleyici hatası:', err);
+        if (mainWindow) mainWindow.webContents.send('update-status', { type: 'error', message: err.message });
+    });
+
+    autoUpdater.on('download-progress', (progressObj) => {
+        if (mainWindow) mainWindow.webContents.send('update-status', { 
+            type: 'progress', 
+            percent: progressObj.percent,
+            bytesPerSecond: progressObj.bytesPerSecond
+        });
     });
 
     autoUpdater.on('update-downloaded', (info) => {
