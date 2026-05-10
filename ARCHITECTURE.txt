@@ -1,4 +1,4 @@
-# ValeBook Mimari Dokümantasyonu (v1.1.54)
+# ValeBook Mimari Dokümantasyonu (v1.1.60)
 
 ## Sistem Genel Bakış
 ValeBook, otopark ve vale işletmeleri için geliştirilmiş, yerel veritabanı (SQLite) kullanan bir Electron uygulamasıdır.
@@ -35,4 +35,4 @@ Sistem "Stateful" bir güncelleme takibi yapar:
 3. Kullanıcı Ayarlar sayfasını açtığında, UI bu durumu "Pull" ederek (çekerek) kullanıcıya anlık bilgi sunar.
 4. Güncelleme varsa, kullanıcı doğrudan GitHub Release sayfasına yönlendirilir.
 
-v1.1.54
+v1.1.60
