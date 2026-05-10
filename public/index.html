@@ -6,6 +6,7 @@
     <title>ValeBook - Kasa Yönetimi</title>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -50,7 +51,19 @@
                         <p class="value" id="todayTotalExpense">0.00 ₺</p>
                     </div>
                 </div>
-
+ 
+                <!-- Grafik Bölümü -->
+                <div class="charts-grid">
+                    <div class="card chart-card">
+                        <h2>Haftalık Kazanç Trendi</h2>
+                        <canvas id="incomeTrendChart"></canvas>
+                    </div>
+                    <div class="card chart-card">
+                        <h2>Gider Dağılımı</h2>
+                        <canvas id="expenseDistributionChart"></canvas>
+                    </div>
+                </div>
+ 
                 <!-- Son İşlemler -->
                 <div class="recent-activity">
                     <h2>Son İşlemler</h2>

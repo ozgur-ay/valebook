@@ -99,4 +99,38 @@ router.get('/recent', (req, res) => {
     }
 });
 
+// Grafik Verileri (Haftalık gelir ve Kategori dağılımı)
+router.get('/charts', (req, res) => {
+    try {
+        // 1. Son 7 günlük gelir trendi
+        const weeklyIncome = db.prepare(`
+            SELECT 
+                date, 
+                SUM(cash_amount) as cash, 
+                SUM(card_amount) as card 
+            FROM income 
+            WHERE date >= date('now', '-7 days')
+            GROUP BY date 
+            ORDER BY date ASC
+        `).all();
+
+        // 2. Giderlerin kategorilere göre dağılımı
+        const categoryExpenses = db.prepare(`
+            SELECT 
+                category, 
+                SUM(amount) as total 
+            FROM expense 
+            GROUP BY category
+            ORDER BY total DESC
+        `).all();
+
+        res.json({
+            weeklyIncome,
+            categoryExpenses
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;
