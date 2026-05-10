@@ -12,9 +12,11 @@ const Settings = {
     async updateVersionInfo() {
         try {
             const result = await App.fetchAPI('/update/version');
+            this.currentVersion = result.current;
             document.getElementById('currentVersion').innerText = 'v' + result.current;
         } catch (e) {
-            document.getElementById('currentVersion').innerText = 'vX.X.X (Bilinmiyor)';
+            this.currentVersion = 'X.X.X';
+            document.getElementById('currentVersion').innerText = 'v' + this.currentVersion + ' (Bilinmiyor)';
         }
     },
 
@@ -154,34 +156,33 @@ const Settings = {
 
     renderUpdateStatus(info) {
         const status = document.getElementById('updateStatus');
-        if (!status) return;
+        const installBtn = document.getElementById('installUpdateBtn');
+        if (!status || !installBtn) return;
 
         switch (info.type) {
             case 'checking':
                 status.innerText = 'Güncelleme kontrol ediliyor...';
+                installBtn.style.display = 'none';
                 break;
             case 'available':
-                status.innerHTML = `<span class="text-success">✅ Sürüm v${info.version} indiriliyor...</span>`;
-                break;
-            case 'progress':
-                const percent = Math.round(info.percent);
-                status.innerHTML = `
-                    <div style="margin-top: 0.5rem;">
-                        <span>İndiriliyor: %${percent}</span>
-                        <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-top: 4px; overflow: hidden;">
-                            <div style="width: ${percent}%; height: 100%; background: var(--success); transition: width 0.3s;"></div>
-                        </div>
-                    </div>
-                `;
-                break;
-            case 'error':
-                status.innerHTML = `<span class="text-danger">❌ Hata: ${info.message || 'İndirme başarısız'}</span>`;
+                status.innerHTML = `<span class="text-success">✅ Yeni Sürüm v${info.version} Mevcut!</span>`;
+                installBtn.innerHTML = 'GitHub\'dan Güncelle';
+                installBtn.style.display = 'inline-flex';
+                installBtn.onclick = () => window.open(`https://github.com/ozgur-ay/valebook/releases/tag/v${info.version}`, '_blank');
                 break;
             case 'not-available':
-                status.innerHTML = `<span class="text-success">✨ Yazılım Güncel (v${App.version || ''})</span>`;
+                status.innerHTML = `<span class="text-success">✨ Yazılım Güncel (v${this.currentVersion || ''})</span>`;
+                installBtn.style.display = 'none';
+                break;
+            case 'error':
+                status.innerHTML = `<span class="text-danger">❌ Hata: Güncelleme bilgisi alınamadı.</span>`;
+                installBtn.style.display = 'none';
                 break;
             case 'downloaded':
-                status.innerHTML = `<span class="text-success">✨ Güncelleme hazır! Uygulama yeniden başlatılacak.</span>`;
+                status.innerHTML = `<span class="text-success">✨ Güncelleme hazır!</span>`;
+                installBtn.innerHTML = 'Şimdi Yeniden Başlat';
+                installBtn.style.display = 'inline-flex';
+                installBtn.onclick = () => Settings.installUpdate();
                 break;
         }
     }

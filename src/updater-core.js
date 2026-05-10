@@ -5,7 +5,7 @@ const pkg = require('../package.json');
  * GitHub Tags API kullanarak versiyon kontrolü yapar.
  * latest.yml gereksinimini (404 hatası) ortadan kaldırır.
  */
-async function checkUpdateViaTags(mainWindow) {
+async function checkUpdateViaTags(mainWindow, showDialog = false) {
     if (!mainWindow) return;
     
     try {
@@ -22,7 +22,6 @@ async function checkUpdateViaTags(mainWindow) {
         const latestTag = tags[0].name.replace('v', '');
         const currentVersion = pkg.version;
 
-        // Semantik Karşılaştırma
         const isNewer = isVersionNewer(latestTag, currentVersion);
 
         if (isNewer) {
@@ -30,6 +29,20 @@ async function checkUpdateViaTags(mainWindow) {
                 type: 'available', 
                 version: latestTag 
             });
+
+            if (showDialog) {
+                const { dialog, shell } = require('electron');
+                dialog.showMessageBox(mainWindow, {
+                    type: 'info',
+                    title: 'Yeni Güncelleme Mevcut',
+                    message: `Yeni bir ValeBook sürümü (v${latestTag}) mevcut! Şimdi GitHub üzerinden indirmek ister misiniz?`,
+                    buttons: ['İndir (GitHub)', 'Daha Sonra']
+                }).then((result) => {
+                    if (result.response === 0) {
+                        shell.openExternal('https://github.com/ozgur-ay/valebook/releases/latest');
+                    }
+                });
+            }
         } else {
             mainWindow.webContents.send('update-status', { type: 'not-available' });
         }

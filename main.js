@@ -45,10 +45,10 @@ function createWindow() {
     // Kendi sunucumuzu yükle
     mainWindow.loadURL('http://localhost:3000');
     
-    // Sayfa yüklendiğinde güncellemeleri kontrol et (Tag-based otonom check)
+    // Sayfa yüklendiğinde güncellemeleri kontrol et (Tag-based otonom check + Pop-up)
     mainWindow.webContents.on('did-finish-load', () => {
         const { checkUpdateViaTags } = require('./src/updater-core.js');
-        checkUpdateViaTags(mainWindow);
+        checkUpdateViaTags(mainWindow, true);
     });
 
     mainWindow.maximize();
