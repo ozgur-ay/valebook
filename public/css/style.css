@@ -83,10 +83,9 @@ body {
 
 /* Main Content */
 .content {
-    flex: 1;
-    margin-left: 260px;
     padding: 2rem;
     padding-bottom: 4rem;
+    transform: translateZ(0); /* GPU Hızlandırma - Katman Çakışmalarını Önler */
 }
 
 .top-bar {
@@ -138,6 +137,7 @@ body {
     position: relative;
     overflow: hidden;
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+    will-change: transform; /* Performans İyileştirmesi */
 }
  
 .glass-card::after {
@@ -295,11 +295,15 @@ input, select, textarea {
     font-family: inherit;
     font-size: 0.9375rem;
     transition: border-color 0.2s;
+    position: relative;
+    z-index: 50; /* Tüm inputları diğer katmanların üzerine çıkar */
+    pointer-events: auto !important; /* Tıklanabilirliği garanti et */
 }
 
 input:focus, select:focus, textarea:focus {
     outline: none;
     border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
 input[readonly] {
@@ -330,6 +334,8 @@ input[type="date"] {
     cursor: pointer;
     transition: all 0.2s;
     border: none;
+    position: relative;
+    z-index: 51;
 }
 
 .btn-primary {
