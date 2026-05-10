@@ -28,7 +28,7 @@ const App = {
         const el = document.getElementById('versionDisplay');
         if (el) {
             // Basitlik için şu an harcoded
-            el.innerText = 'ValeBook v1.0.0';
+            el.innerText = 'ValeBook v1.0.1';
         }
     },
 

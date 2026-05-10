@@ -11,7 +11,7 @@ const Settings = {
 
     updateVersionInfo() {
         // package.json'dan API ile de alınabilir, şu an hardcoded
-        document.getElementById('currentVersion').innerText = 'v1.0.0';
+        document.getElementById('currentVersion').innerText = 'v1.0.1';
     },
 
     async loadSettings() {
