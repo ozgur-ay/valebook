@@ -43,6 +43,7 @@ router.get('/today', (req, res) => {
                 vehicle_count: income.total_vehicles || 0,
                 cash_total: (totalCashIncome + totalPosCollected) - totalExpenses, // Gerçek Harcanabilir
                 pending_pos: Math.max(0, pendingNetVal), // Bankada Kalan
+                total_pending_commission: (pendingCardTotal * (rate / 100)), // Toplam Kesinti
                 total_income: income.total_income || 0
             }
         });

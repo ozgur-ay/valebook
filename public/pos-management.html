@@ -66,8 +66,12 @@
                 <div class="recent-activity">
                     <div class="section-header">
                         <h2>Bekleyen POS İşlemleri</h2>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-secondary" onclick="POS.showDebug()" title="Veri Düzenleme Tanısı">🔍 Tanı</button>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <div class="form-group" style="margin-bottom: 0; display: flex; align-items: center; gap: 0.5rem;">
+                                <label style="margin-bottom: 0; font-size: 0.75rem; white-space: nowrap;">Tarih Filtresi:</label>
+                                <input type="date" id="posFromDate" style="padding: 0.3rem; font-size: 0.75rem; width: 120px;" onchange="POS.loadPending()">
+                                <input type="date" id="posToDate" style="padding: 0.3rem; font-size: 0.75rem; width: 120px;" onchange="POS.loadPending()">
+                            </div>
                             <button id="btnUndoCollection" class="btn btn-secondary" onclick="POS.undoCollection()" style="display: none;">↩️ Son Tahsilatı Geri Al</button>
                             <button class="btn btn-primary" onclick="POS.collectAll()">Tümünü Tahsil Et</button>
                         </div>

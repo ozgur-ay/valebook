@@ -5,7 +5,7 @@ const path = require('path');
  * Verileri Excel formatında dışa aktaran yardımcı modül.
  */
 
-async function exportToExcel(incomeData, expenseData, fileName = 'ValeBook_Rapor.xlsx') {
+async function exportToExcel(incomeData, expenseData, options = {}) {
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'ValeBook';
     workbook.lastModifiedBy = 'ValeBook';
@@ -21,10 +21,16 @@ async function exportToExcel(incomeData, expenseData, fileName = 'ValeBook_Rapor
         return mapping[method] || method;
     };
 
-    const processedIncomeData = incomeData.map(row => ({
-        ...row,
-        payment_method: mapPaymentMethod(row.payment_method)
-    }));
+    const processedIncomeData = incomeData.map(row => {
+        const rate = options.posRate || 0;
+        const commission = row.payment_method === 'cash' ? 0 : (row.card_amount || 0) * (rate / 100);
+        return {
+            ...row,
+            payment_method: mapPaymentMethod(row.payment_method),
+            commission: commission,
+            net_amount: (row.total_amount || 0) - commission
+        };
+    });
 
     const processedExpenseData = expenseData.map(row => ({
         ...row,
@@ -36,8 +42,9 @@ async function exportToExcel(incomeData, expenseData, fileName = 'ValeBook_Rapor
     incomeSheet.columns = [
         { header: 'Tarih', key: 'date', width: 15 },
         { header: 'Araç Sayısı', key: 'vehicle_count', width: 12 },
-        { header: 'Birim Ücret', key: 'unit_fee', width: 12 },
-        { header: 'Toplam Tutar', key: 'total_amount', width: 15 },
+        { header: 'Toplam (Brüt)', key: 'total_amount', width: 15 },
+        { header: 'Banka Kesintisi', key: 'commission', width: 15 },
+        { header: 'Net Tutar', key: 'net_amount', width: 15 },
         { header: 'Nakit', key: 'cash_amount', width: 12 },
         { header: 'Kart (POS)', key: 'card_amount', width: 12 },
         { header: 'Ödeme Yöntemi', key: 'payment_method', width: 15 },

@@ -26,10 +26,10 @@ const Reports = {
             document.getElementById('reportExpense').innerText = App.formatCurrency(data.summary.total_expense);
             document.getElementById('reportNetStatus').innerText = App.formatCurrency(data.summary.net_profit);
             
-            document.getElementById('paymentSplit').innerText = `Nakit: ${App.formatCurrency(data.summary.total_cash)} | POS: ${App.formatCurrency(data.summary.total_card)}`;
+            document.getElementById('paymentSplit').innerText = `Nakit: ${App.formatCurrency(data.summary.total_cash)} | POS: ${App.formatCurrency(data.summary.total_card)} | Kesinti: ${App.formatCurrency(data.summary.total_commission)}`;
             
             const netEl = document.getElementById('reportNetStatus');
-            netEl.style.color = data.summary.net_profit < 0 ? 'var(--danger)' : 'var(--success)';
+            netEl.style.color = data.summary.net_profit < 0 ? 'var(--danger)' : '#10b981';
 
             // Gider tablosu (Özet)
             const tbodySummary = document.querySelector('#expenseSummaryTable tbody');
@@ -43,6 +43,28 @@ const Reports = {
                 tbodySummary.appendChild(tr);
             });
 
+            // Gelir tablosu (Detaylı)
+            const tbodyIncome = document.querySelector('#rawIncomeTable tbody');
+            tbodyIncome.innerHTML = '';
+            data.raw_income.forEach(item => {
+                const tr = document.createElement('tr');
+                const rate = data.pos_rate || 0;
+                const commission = (item.card_amount || 0) * (rate / 100);
+                const net = (item.total_amount || 0) - commission;
+                
+                tr.innerHTML = `
+                    <td>${new Date(item.date).toLocaleDateString('tr-TR')}</td>
+                    <td>${item.vehicle_count} Ara\u00e7</td>
+                    <td>${App.formatCurrency(item.total_amount)}</td>
+                    <td class="text-danger">${App.formatCurrency(commission)}</td>
+                    <td class="text-success">${App.formatCurrency(net)}</td>
+                    <td>${App.formatCurrency(item.cash_amount)}</td>
+                    <td>${App.formatCurrency(item.card_amount)}</td>
+                    <td>${item.note || '-'}</td>
+                `;
+                tbodyIncome.appendChild(tr);
+            });
+
             // Gider tablosu (Detaylı)
             const tbodyRaw = document.querySelector('#rawExpenseTable tbody');
             tbodyRaw.innerHTML = '';
@@ -53,7 +75,7 @@ const Reports = {
                     <td>${item.category}</td>
                     <td>${item.description || '-'}</td>
                     <td class="text-danger">-${App.formatCurrency(item.amount)}</td>
-                    <td>${item.payment_method === 'cash' ? 'Nakit' : 'Kredi Kartı'}</td>
+                    <td>${item.payment_method === 'cash' ? 'Nakit' : 'Kredi Kart\u0131'}</td>
                     <td>${item.document_no || '-'}</td>
                 `;
                 tbodyRaw.appendChild(tr);

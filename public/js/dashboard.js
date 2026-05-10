@@ -21,6 +21,15 @@ const Dashboard = {
             document.getElementById('todayVehicleCount').innerText = summary.vehicle_count;
             document.getElementById('cashInHand').innerText = App.formatCurrency(cashInHand);
             document.getElementById('pendingBank').innerText = App.formatCurrency(summary.pending_pos);
+            
+            // Komisyon notunu güncelle
+            const commissionNote = document.getElementById('pendingCommissionNote');
+            if (commissionNote && summary.total_pending_commission > 0) {
+                commissionNote.innerText = `(${"Kesinti hari\u00e7 net. " + "Tahmini Kesinti: " + App.formatCurrency(summary.total_pending_commission)})`;
+            } else if (commissionNote) {
+                commissionNote.innerText = "(Kesinti hari\u00e7 net)";
+            }
+
             document.getElementById('todayTotalIncome').innerText = App.formatCurrency(summary.total_income);
             
             // Kasa durumuna göre renk ayarla

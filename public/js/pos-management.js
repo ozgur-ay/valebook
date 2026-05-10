@@ -37,7 +37,9 @@ const POS = {
             // ASLINDA: POS takibi ham veri üzerinden olmalı.
             
             // Backend'e ham bekleyenleri getiren bir endpoint ekleyelim.
-            const pending = await App.fetchAPI('/income/pending-pos');
+            const from = document.getElementById('posFromDate')?.value || '';
+            const to = document.getElementById('posToDate')?.value || '';
+            const pending = await App.fetchAPI(`/income/pending-pos?from=${from}&to=${to}`);
             this.renderPending(pending);
 
             // Fokus iyileştirmesi: Küçük bir gecikmeyle fokus ver (Donma/takılmaları önler)

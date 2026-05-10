@@ -38,7 +38,17 @@ router.get('/summary', (req, res) => {
             ORDER BY date DESC
         `).all(from, to);
 
-        const totalExpense = expense.reduce((sum, item) => sum + item.total_amount, 0);
+        const rawIncome = db.prepare(`
+            SELECT * FROM income
+            WHERE date BETWEEN ? AND ? AND is_deleted = 0
+            ORDER BY date DESC
+        `).all(from, to);
+
+        const commissionSetting = db.prepare('SELECT value FROM settings WHERE key = "pos_commission_rate"').get();
+        const rate = commissionSetting ? parseFloat(commissionSetting.value) : 0;
+        
+        const totalCommission = (income.total_card || 0) * (rate / 100);
+        const netProfitAfterCommission = (income.total_income || 0) - totalExpense - totalCommission;
 
         res.json({
             summary: {
@@ -46,11 +56,14 @@ router.get('/summary', (req, res) => {
                 total_income: income.total_income || 0,
                 total_cash: income.total_cash || 0,
                 total_card: income.total_card || 0,
+                total_commission: totalCommission,
                 total_expense: totalExpense,
-                net_profit: (income.total_income || 0) - totalExpense
+                net_profit: netProfitAfterCommission
             },
             expense_details: expense,
-            raw_expenses: rawExpenses
+            raw_expenses: rawExpenses,
+            raw_income: rawIncome,
+            pos_rate: rate
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -66,7 +79,10 @@ router.get('/export-excel', async (req, res) => {
         const incomeData = db.prepare('SELECT * FROM income WHERE date BETWEEN ? AND ? ORDER BY date').all(from, to);
         const expenseData = db.prepare('SELECT * FROM expense WHERE date BETWEEN ? AND ? ORDER BY date').all(from, to);
 
-        const workbook = await exportToExcel(incomeData, expenseData);
+        const commissionSetting = db.prepare('SELECT value FROM settings WHERE key = "pos_commission_rate"').get();
+        const rate = commissionSetting ? parseFloat(commissionSetting.value) : 0;
+
+        const workbook = await exportToExcel(incomeData, expenseData, { posRate: rate });
         
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', `attachment; filename=ValeBook_Rapor_${from}_${to}.xlsx`);
