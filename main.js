@@ -7,6 +7,7 @@ const { autoUpdater } = require('electron-updater');
 require('./server.js');
 
 let mainWindow;
+let updaterState = { type: 'idle' };
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -62,35 +63,42 @@ function initAutoUpdater() {
 
     autoUpdater.on('checking-for-update', () => {
         console.log('Güncelleme kontrol ediliyor...');
-        if (mainWindow) mainWindow.webContents.send('update-status', { type: 'checking' });
+        updaterState = { type: 'checking' };
+        if (mainWindow) mainWindow.webContents.send('update-status', updaterState);
     });
 
     autoUpdater.on('update-available', (info) => {
         console.log('Yeni güncelleme bulundu:', info.version);
-        if (mainWindow) mainWindow.webContents.send('update-status', { type: 'available', version: info.version });
+        updaterState = { type: 'available', version: info.version };
+        if (mainWindow) mainWindow.webContents.send('update-status', updaterState);
         // autoDownload true olduğu için burada tekrar download tetiklemeye gerek yok.
     });
 
     autoUpdater.on('update-not-available', (info) => {
         console.log('Güncelleme yok.');
-        if (mainWindow) mainWindow.webContents.send('update-status', { type: 'not-available' });
+        updaterState = { type: 'not-available' };
+        if (mainWindow) mainWindow.webContents.send('update-status', updaterState);
     });
 
     autoUpdater.on('error', (err) => {
         console.error('Güncelleyici hatası:', err);
-        if (mainWindow) mainWindow.webContents.send('update-status', { type: 'error', message: err.message });
+        updaterState = { type: 'error', message: err.message };
+        if (mainWindow) mainWindow.webContents.send('update-status', updaterState);
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
-        if (mainWindow) mainWindow.webContents.send('update-status', { 
+        updaterState = { 
             type: 'progress', 
             percent: progressObj.percent,
             bytesPerSecond: progressObj.bytesPerSecond
-        });
+        };
+        if (mainWindow) mainWindow.webContents.send('update-status', updaterState);
     });
 
     autoUpdater.on('update-downloaded', (info) => {
         console.log('Güncelleme indirildi:', info.version);
+        updaterState = { type: 'downloaded', version: info.version };
+        if (mainWindow) mainWindow.webContents.send('update-status', updaterState);
         dialog.showMessageBox(mainWindow, {
             type: 'info',
             title: 'ValeBook Güncelleme',
@@ -104,6 +112,11 @@ function initAutoUpdater() {
 
     // Program her açıldığında kontrol et
     autoUpdater.checkForUpdates();
+
+    // Renderer'dan gelen durum isteklerini cevapla
+    ipcMain.handle('get-update-status', () => {
+        return updaterState;
+    });
 }
 
 app.on('ready', () => {

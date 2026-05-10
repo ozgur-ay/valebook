@@ -142,39 +142,48 @@ const Settings = {
     bindUpdateEvents() {
         if (!window.electronAPI || !window.electronAPI.onUpdateStatus) return;
 
-        window.electronAPI.onUpdateStatus((info) => {
-            const status = document.getElementById('updateStatus');
-            if (!status) return;
-
-            switch (info.type) {
-                case 'checking':
-                    status.innerText = 'Güncelleme kontrol ediliyor...';
-                    break;
-                case 'available':
-                    status.innerHTML = `<span class="text-success">✅ Sürüm v${info.version} indiriliyor...</span>`;
-                    break;
-                case 'progress':
-                    const percent = Math.round(info.percent);
-                    status.innerHTML = `
-                        <div style="margin-top: 0.5rem;">
-                            <span>İndiriliyor: %${percent}</span>
-                            <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-top: 4px; overflow: hidden;">
-                                <div style="width: ${percent}%; height: 100%; background: var(--success); transition: width 0.3s;"></div>
-                            </div>
-                        </div>
-                    `;
-                    break;
-                case 'error':
-                    status.innerHTML = `<span class="text-danger">❌ Hata: ${info.message || 'İndirme başarısız'}</span>`;
-                    break;
-                case 'not-available':
-                    status.innerHTML = `<span class="text-success">✨ Yazılım Güncel (v${App.version || ''})</span>`;
-                    break;
-                case 'downloaded':
-                    status.innerHTML = `<span class="text-success">✨ Güncelleme hazır! Uygulama yeniden başlatılacak.</span>`;
-                    break;
-            }
+        // Renderer açıldığında mevcut durumu iste (Donma sorununu çözer)
+        window.electronAPI.getUpdateStatus().then(info => {
+            if (info) this.renderUpdateStatus(info);
         });
+
+        window.electronAPI.onUpdateStatus((info) => {
+            this.renderUpdateStatus(info);
+        });
+    },
+
+    renderUpdateStatus(info) {
+        const status = document.getElementById('updateStatus');
+        if (!status) return;
+
+        switch (info.type) {
+            case 'checking':
+                status.innerText = 'Güncelleme kontrol ediliyor...';
+                break;
+            case 'available':
+                status.innerHTML = `<span class="text-success">✅ Sürüm v${info.version} indiriliyor...</span>`;
+                break;
+            case 'progress':
+                const percent = Math.round(info.percent);
+                status.innerHTML = `
+                    <div style="margin-top: 0.5rem;">
+                        <span>İndiriliyor: %${percent}</span>
+                        <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-top: 4px; overflow: hidden;">
+                            <div style="width: ${percent}%; height: 100%; background: var(--success); transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+                `;
+                break;
+            case 'error':
+                status.innerHTML = `<span class="text-danger">❌ Hata: ${info.message || 'İndirme başarısız'}</span>`;
+                break;
+            case 'not-available':
+                status.innerHTML = `<span class="text-success">✨ Yazılım Güncel (v${App.version || ''})</span>`;
+                break;
+            case 'downloaded':
+                status.innerHTML = `<span class="text-success">✨ Güncelleme hazır! Uygulama yeniden başlatılacak.</span>`;
+                break;
+        }
     }
 };
 
