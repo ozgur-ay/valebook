@@ -114,8 +114,7 @@ const setupDefaults = () => {
     // Varsayılan Ayarlar
     const defaultSettings = [
         { key: 'business_name', value: 'Cafe Vale Otopark' },
-        { key: 'parking_fee', value: '50' },
-        { key: 'capacity', value: '100' }
+        { key: 'pos_commission_rate', value: '0' }
     ];
     
     const settingsStmt = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');

@@ -11,14 +11,23 @@ router.get('/today', (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0];
 
-        // Gelir özeti
+        // Gelir özeti (Nakit ve Kart ayrımı)
         const income = db.prepare(`
             SELECT 
                 SUM(vehicle_count) as total_vehicles,
+                SUM(cash_amount) as total_cash,
+                SUM(card_amount) as total_card,
                 SUM(total_amount) as total_income
             FROM income 
-            WHERE date = ?
+            WHERE date = ? AND is_deleted = 0
         `).get(today);
+
+        // Bekleyen POS toplamı (Herhangi bir tarihteki bekleyenler)
+        const pendingPos = db.prepare(`
+            SELECT SUM(card_amount) as pending
+            FROM income
+            WHERE pos_status = 'pending' AND is_deleted = 0
+        `).get();
 
         // Gider özeti
         const expense = db.prepare(`
@@ -30,8 +39,11 @@ router.get('/today', (req, res) => {
         res.json({
             date: today,
             vehicle_count: income.total_vehicles || 0,
+            cash_income: income.total_cash || 0,
+            card_income: income.total_card || 0,
             total_income: income.total_income || 0,
-            total_expense: expense.total_expense || 0
+            total_expense: expense.total_expense || 0,
+            pending_pos: pendingPos.pending || 0
         });
     } catch (error) {
         res.status(500).json({ error: error.message });

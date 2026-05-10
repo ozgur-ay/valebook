@@ -18,6 +18,7 @@
                 <li><a href="income.html"><i class="icon-income"></i> Gelir Girişi</a></li>
                 <li><a href="expense.html"><i class="icon-expense"></i> Gider Girişi</a></li>
                 <li><a href="reports.html"><i class="icon-reports"></i> Raporlar</a></li>
+                <li><a href="pos-management.html"><i class="icon-pos"></i> POS Yönetimi</a></li>
                 <li><a href="settings.html" class="active"><i class="icon-settings"></i> Ayarlar</a></li>
             </ul>
         </nav>
@@ -40,12 +41,11 @@
                             </div>
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label for="parking_fee">Standart Park Ücreti (₺)</label>
-                                    <input type="number" id="parking_fee">
+                                    <label for="pos_commission_rate">Banka POS Komisyon Oranı (%)</label>
+                                    <input type="number" step="0.01" id="pos_commission_rate" placeholder="Örn: 1.5">
                                 </div>
-                                <div class="form-group">
-                                    <label for="capacity">Otopark Kapasitesi</label>
-                                    <input type="number" id="capacity">
+                                <div class="form-group" style="visibility: hidden;">
+                                    <!-- Placeholder for grid alignment -->
                                 </div>
                             </div>
                             <button type="submit" class="btn btn-primary">Ayarları Kaydet</button>

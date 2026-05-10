@@ -3,8 +3,10 @@
 Bu uygulama, cafe vale işletmeleri için günlük gelir ve gider takibi yapmak amacıyla geliştirilmiştir.
 
 ## Özellikler
-- ✅ Günlük araç girişi ve gelir kaydı
-- ✅ Nakit ve POS (Kredi Kartı) ayrımı
+- ✅ Günlük araç girişi ve gelir kaydı (Konsolide görünüm)
+- ✅ Nakit ve POS (Kredi Kartı) ayrımı + Banka Komisyon hesaplama
+- ✅ **POS Likidite Takibi:** Bankada bekleyen paraları "Tahsil Edildi" olarak işaretleme
+- ✅ **Kasa Yönetimi:** Sıcak nakit (Eldeki) ve Bankadaki parayı ayrı görebilme
 - ✅ Gider yönetimi ve kategori bazlı takip
 - ✅ Kar-Zarar analizi ve aylık raporlar
 - ✅ Excel'e aktarım desteği
@@ -18,4 +20,6 @@ Bu uygulama, cafe vale işletmeleri için günlük gelir ve gider takibi yapmak 
 
 ## Kullanım
 - Masaüstündeki **ValeBook** kısayoluna çift tıklayın.
-- İnternet tarayıcısı gerektirmeden bağımsız uygulama pencerenizde açılacaktır.
+- **Gelir Girişi:** Günlük girişleri yapın. POS ödemeleri "Bankada Bekleyen" olarak kaydedilir.
+- **POS Yönetimi:** Banka hesabınıza geçen paraları buradan onaylayarak "Kasa"nıza aktarın.
+- **Dashboard:** "Kasada Nakit" kısmından anlık harcanabilir bakiyenizi takip edin.

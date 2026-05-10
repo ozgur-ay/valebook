@@ -13,19 +13,21 @@ const Dashboard = {
     async loadStats() {
         try {
             const today = await App.fetchAPI('/dashboard/today');
-            const month = await App.fetchAPI('/dashboard/month-summary');
+            
+            // Sıcak Nakit = Bugünün Nakit Girişi - Bugünün Gideri
+            const cashInHand = today.cash_income - today.total_expense;
 
             document.getElementById('todayVehicleCount').innerText = today.vehicle_count;
-            document.getElementById('todayTotalIncome').innerText = App.formatCurrency(today.total_income);
+            document.getElementById('cashInHand').innerText = App.formatCurrency(cashInHand);
+            document.getElementById('pendingBank').innerText = App.formatCurrency(today.pending_pos);
             document.getElementById('todayTotalExpense').innerText = App.formatCurrency(today.total_expense);
-            document.getElementById('monthNetProfit').innerText = App.formatCurrency(month.net_profit);
             
-            // Kâr durumuna göre renk ayarla
-            const netProfitEl = document.getElementById('monthNetProfit');
-            if (month.net_profit < 0) {
-                netProfitEl.style.color = 'var(--danger)';
+            // Kasa durumuna göre renk ayarla
+            const cashEl = document.getElementById('cashInHand');
+            if (cashInHand < 0) {
+                cashEl.style.color = 'var(--danger)';
             } else {
-                netProfitEl.style.color = 'var(--success)';
+                cashEl.style.color = '#10b981'; // Success emerald
             }
         } catch (error) {
             console.error('Stats loading error:', error);

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ValeBook - POS Yönetimi</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>ValeBook</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html"><i class="icon-dashboard"></i> Dashboard</a></li>
+                <li><a href="income.html"><i class="icon-income"></i> Gelir Girişi</a></li>
+                <li><a href="expense.html"><i class="icon-expense"></i> Gider Girişi</a></li>
+                <li><a href="reports.html"><i class="icon-reports"></i> Raporlar</a></li>
+                <li><a href="pos-management.html" class="active"><i class="icon-pos"></i> POS Yönetimi</a></li>
+                <li><a href="settings.html"><i class="icon-settings"></i> Ayarlar</a></li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <header class="top-bar">
+                <div class="breadcrumb">Banka / POS Takibi</div>
+                <div class="date-display" id="currentDate">-- -- ----</div>
+            </header>
+
+            <section class="pos-management">
+                <div class="glass-card stat-summary">
+                    <div class="stat">
+                        <span class="label">Bankada Bekleyen Toplam</span>
+                        <div class="value neon-text-blue" id="pendingTotal">₺0,00</div>
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <div class="section-header">
+                        <h2>Bekleyen POS İşlemleri</h2>
+                        <button class="btn btn-primary" onclick="POS.collectAll()">Tümünü Tahsil Et</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="pendingPosTable">
+                            <thead>
+                                <tr>
+                                    <th>İşlem Tarihi</th>
+                                    <th>Brüt Tutar</th>
+                                    <th>Komisyon</th>
+                                    <th>Net Alacak</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingPosBody">
+                                <!-- JS ile doldurulacak -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <span id="versionDisplay">ValeBook v1.1.9</span>
+        </footer>
+    </div>
+
+    <style>
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .stat-summary { margin-bottom: 2rem; padding: 2rem; text-align: center; }
+        .stat-summary .value { font-size: 2.5rem; font-weight: 700; margin-top: 0.5rem; }
+        .neon-text-blue { color: #3b82f6; text-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+    </style>
+
+    <script src="js/app.js"></script>
+    <script src="js/pos-management.js"></script>
+</body>
+</html>

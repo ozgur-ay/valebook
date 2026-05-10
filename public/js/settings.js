@@ -22,8 +22,7 @@ const Settings = {
         try {
             const settings = await App.fetchAPI('/settings');
             document.getElementById('business_name').value = settings.business_name || '';
-            document.getElementById('parking_fee').value = settings.parking_fee || 50;
-            document.getElementById('capacity').value = settings.capacity || 50;
+            document.getElementById('pos_commission_rate').value = settings.pos_commission_rate || 0;
         } catch (error) {
             console.error('Settigns load error:', error);
         }
@@ -33,8 +32,7 @@ const Settings = {
             e.preventDefault();
             const data = {
                 business_name: document.getElementById('business_name').value,
-                parking_fee: document.getElementById('parking_fee').value,
-                capacity: document.getElementById('capacity').value
+                pos_commission_rate: document.getElementById('pos_commission_rate').value
             };
             try {
                 await App.fetchAPI('/settings', {

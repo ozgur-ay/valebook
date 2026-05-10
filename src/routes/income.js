@@ -75,6 +75,27 @@ router.post('/redo', (req, res) => {
     }
 });
 
+// Bekleyen POS işlemlerini getir (Ham veri)
+router.get('/pending-pos', (req, res) => {
+    try {
+        const rows = db.prepare('SELECT * FROM income WHERE payment_method IN ("credit_card", "mixed") AND pos_status = "pending" AND is_deleted = 0 ORDER BY date DESC').all();
+        res.json(rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Tüm bekleyen POS'ları tahsil et
+router.post('/collect-all-pos', (req, res) => {
+    try {
+        db.prepare('UPDATE income SET pos_status = "collected", pos_collected_date = ? WHERE pos_status = "pending" AND is_deleted = 0')
+          .run(new Date().toISOString().split('T')[0]);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Yeni gelir ekle
 router.post('/', (req, res) => {
     try {
@@ -92,10 +113,16 @@ router.post('/', (req, res) => {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
+        // Yeni eklenen POS'lar her zaman 'pending' başlar
+        let finalPosStatus = pos_status || 'na';
+        if (payment_method === 'credit_card' || payment_method === 'mixed') {
+            finalPosStatus = 'pending';
+        }
+
         const info = stmt.run(
             date, vehicle_count, unit_fee, total_amount, 
             payment_method, cash_amount, card_amount, 
-            pos_status, pos_expected_date, note
+            finalPosStatus, pos_expected_date, note
         );
 
         res.json({ id: info.lastInsertRowid });
