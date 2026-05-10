@@ -12,15 +12,16 @@ const Dashboard = {
     // Özet verileri yükle
     async loadStats() {
         try {
-            const today = await App.fetchAPI('/dashboard/today');
+            const data = await App.fetchAPI('/dashboard/today');
+            const summary = data.summary;
             
-            // Sıcak Nakit = Bugünün Nakit Girişi - Bugünün Gideri
-            const cashInHand = today.cash_income - today.total_expense;
+            // Sıcak Nakit: Backend'den gelen summary.cash_total (Nakit + Tahsil Edilmiş - Giderler)
+            const cashInHand = summary.cash_total;
 
-            document.getElementById('todayVehicleCount').innerText = today.vehicle_count;
+            document.getElementById('todayVehicleCount').innerText = summary.vehicle_count;
             document.getElementById('cashInHand').innerText = App.formatCurrency(cashInHand);
-            document.getElementById('pendingBank').innerText = App.formatCurrency(today.pending_pos);
-            document.getElementById('todayTotalExpense').innerText = App.formatCurrency(today.total_expense);
+            document.getElementById('pendingBank').innerText = App.formatCurrency(summary.pending_pos);
+            document.getElementById('todayTotalIncome').innerText = App.formatCurrency(summary.total_income);
             
             // Kasa durumuna göre renk ayarla
             const cashEl = document.getElementById('cashInHand');

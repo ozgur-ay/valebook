@@ -40,13 +40,16 @@
                         <div class="value" id="todayVehicleCount">0</div>
                     </div>
                     <div class="glass-card stat-card highlight">
-                        <span class="label">Kasada Nakit (Bugün)</span>
-                        <div class="value" id="cashInHand">₺0,00</div>
-                    </div>
-                    <div class="glass-card stat-card">
-                        <span class="label">Bankada Bekleyen</span>
-                        <div class="value neon-text-blue" id="pendingBank">₺0,00</div>
-                    </div>
+                    <span class="label">Sıcak Nakit (Kasa)</span>
+                    <div class="value" id="cashInHand">₺0,00</div>
+                    <small style="color:var(--text-gray); font-size: 0.75rem; margin-top: 0.5rem; display: block;">(Nakit + Tahsil Edilmiş)</small>
+                </div>
+
+                <div class="glass-card stat-card">
+                    <span class="label">Bankada Bekleyen</span>
+                    <div class="value neon-text-blue" id="pendingBank">₺0,00</div>
+                    <small style="color:var(--text-gray); font-size: 0.75rem; margin-top: 0.5rem; display: block;">(Gelecek Alacaklar)</small>
+                </div>
                     <div class="glass-card stat-card">
                         <span class="label">Bugünkü Gider</span>
                         <div class="value" id="todayTotalExpense">₺0,00</div>

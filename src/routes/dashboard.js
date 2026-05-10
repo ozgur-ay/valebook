@@ -22,28 +22,28 @@ router.get('/today', (req, res) => {
             WHERE date = ? AND is_deleted = 0
         `).get(today);
 
-        // Bekleyen POS toplamı (Herhangi bir tarihteki bekleyenler)
-        const pendingPos = db.prepare(`
-            SELECT SUM(card_amount) as pending
-            FROM income
-            WHERE pos_status = 'pending' AND is_deleted = 0
-        `).get();
-
-        // Gider özeti
-        const expense = db.prepare(`
-            SELECT SUM(amount) as total_expense
-            FROM expense
-            WHERE date = ?
-        `).get(today);
+        // --- Toplam Harcanabilir (Sıcak Nakit) ---
+        // Kasa (Nakit) + Tahsil Edilmiş POS - Giderler
+        const totalCashIncome = db.prepare('SELECT SUM(cash_amount) as total FROM income WHERE is_deleted = 0 AND date BETWEEN ? AND ?').get(today, today).total || 0;
+        const totalPosCollected = db.prepare('SELECT SUM(pos_collected_amount) as total FROM income WHERE is_deleted = 0 AND date BETWEEN ? AND ?').get(today, today).total || 0;
+        const totalExpenses = db.prepare('SELECT SUM(amount) as total FROM expense WHERE is_deleted = 0 AND date BETWEEN ? AND ?').get(today, today).total || 0;
+        
+        // --- Bankada Bekleyen ---
+        // (Toplam Bekleyen POS Net) - (Zaten Tahsil Edilmiş)
+        const commissionSetting = db.prepare('SELECT value FROM settings WHERE key = "pos_commission_rate"').get();
+        const rate = commissionSetting ? parseFloat(commissionSetting.value) : 0;
+        
+        const pendingCardTotal = db.prepare('SELECT SUM(card_amount) as total FROM income WHERE is_deleted = 0 AND pos_status != "collected"').get().total || 0;
+        const pendingCollectedPart = db.prepare('SELECT SUM(pos_collected_amount) as total FROM income WHERE is_deleted = 0 AND pos_status != "collected"').get().total || 0;
+        const pendingNetVal = (pendingCardTotal * (1 - rate / 100)) - pendingCollectedPart;
 
         res.json({
-            date: today,
-            vehicle_count: income.total_vehicles || 0,
-            cash_income: income.total_cash || 0,
-            card_income: income.total_card || 0,
-            total_income: income.total_income || 0,
-            total_expense: expense.total_expense || 0,
-            pending_pos: pendingPos.pending || 0
+            summary: {
+                vehicle_count: income.total_vehicles || 0,
+                cash_total: (totalCashIncome + totalPosCollected) - totalExpenses, // Gerçek Harcanabilir
+                pending_pos: Math.max(0, pendingNetVal), // Bankada Kalan
+                total_income: income.total_income || 0
+            }
         });
     } catch (error) {
         res.status(500).json({ error: error.message });

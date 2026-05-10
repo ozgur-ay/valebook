@@ -29,6 +29,7 @@ db.exec(`
         total_amount REAL,
         cash_amount REAL,
         card_amount REAL DEFAULT 0,
+        pos_collected_amount REAL DEFAULT 0,
         payment_method TEXT, -- 'cash', 'credit_card', 'mixed'
         pos_status TEXT DEFAULT 'na', -- 'na', 'pending', 'collected', 'cancelled'
         pos_expected_date TEXT,
@@ -79,6 +80,7 @@ db.exec(`
 const applyMigrations = () => {
     const columns = [
         { table: 'income', column: 'pos_status', type: 'TEXT DEFAULT "na"' },
+        { table: 'income', column: 'pos_collected_amount', type: 'REAL DEFAULT 0' },
         { table: 'income', column: 'pos_expected_date', type: 'TEXT' },
         { table: 'income', column: 'pos_collected_date', type: 'TEXT' },
         { table: 'income', column: 'is_deleted', type: 'INTEGER DEFAULT 0' },

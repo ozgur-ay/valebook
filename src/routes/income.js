@@ -85,13 +85,64 @@ router.get('/pending-pos', (req, res) => {
     }
 });
 
-// Tüm bekleyen POS'ları tahsil et
-router.post('/collect-all-pos', (req, res) => {
+// Belirli bir tutarı bankadan tahsil et (FIFO Mantığı)
+router.post('/collect-amount', (req, res) => {
     try {
-        db.prepare('UPDATE income SET pos_status = "collected", pos_collected_date = ? WHERE pos_status = "pending" AND is_deleted = 0')
-          .run(new Date().toISOString().split('T')[0]);
-        res.json({ success: true });
+        let { amount } = req.body;
+        amount = parseFloat(amount);
+        if (isNaN(amount) || amount <= 0) return res.status(400).json({ error: 'Valid amount required' });
+
+        // Komisyon ayarını al
+        const setting = db.prepare('SELECT value FROM settings WHERE key = "pos_commission_rate"').get();
+        const rate = setting ? parseFloat(setting.value) : 0;
+
+        // Tahsilatı bekleyen veya eksik tahsil edilmiş tüm POS kayıtlarını getir (En eski tarihten başla)
+        const pending = db.prepare(`
+            SELECT * FROM income 
+            WHERE payment_method IN ("credit_card", "mixed") 
+            AND pos_status != "collected" 
+            AND is_deleted = 0 
+            ORDER BY date ASC, id ASC
+        `).all();
+
+        let remainingAmount = amount;
+        const updates = [];
+
+        for (const item of pending) {
+            if (remainingAmount <= 0) break;
+
+            const netExpected = item.card_amount * (1 - rate / 100);
+            const alreadyCollected = item.pos_collected_amount || 0;
+            const needsMore = netExpected - alreadyCollected;
+
+            if (needsMore <= 0) continue;
+
+            const canTake = Math.min(remainingAmount, needsMore);
+            const newCollectedTotal = alreadyCollected + canTake;
+            remainingAmount -= canTake;
+
+            const newStatus = (newCollectedTotal >= netExpected - 0.01) ? 'collected' : 'pending';
+            
+            updates.push({
+                id: item.id,
+                collected: newCollectedTotal,
+                status: newStatus,
+                date: new Date().toISOString().split('T')[0]
+            });
+        }
+
+        // Güncellemeleri uygula
+        const updateStmt = db.prepare('UPDATE income SET pos_collected_amount = ?, pos_status = ?, pos_collected_date = ? WHERE id = ?');
+        const transaction = db.transaction((rows) => {
+            for (const r of rows) {
+                updateStmt.run(r.collected, r.status, r.date, r.id);
+            }
+        });
+        transaction(updates);
+
+        res.json({ success: true, processed_updates: updates.length, remaining: remainingAmount });
     } catch (error) {
+        console.error('Collect amount error:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -109,8 +160,8 @@ router.post('/', (req, res) => {
             INSERT INTO income (
                 date, vehicle_count, unit_fee, total_amount, 
                 payment_method, cash_amount, card_amount, 
-                pos_status, pos_expected_date, note
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                pos_status, pos_expected_date, note, pos_collected_amount
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
         `);
 
         // Yeni eklenen POS'lar her zaman 'pending' başlar
