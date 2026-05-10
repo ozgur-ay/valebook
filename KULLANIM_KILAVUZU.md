@@ -27,18 +27,19 @@ Uygulamayı kullanmaya başlamadan önce, sol menüden **"Ayarlar"** sekmesine g
 
 ---
 
-## 4. POS Yönetimi ve Banka Takibi 🏦
-Bu ekran, henüz hesabınıza geçmemiş paraları yönetmenizi sağlar.
-1. Sol menüden **"POS Yönetimi"** sekmesine tıklayın.
-2. **Bankada Bekleyen:** Bankanın elinde tuttuğu toplam alacağınızı (komisyon düşülmüş net rakam) görebilirsiniz.
-3. **Tahsil Et:** Para banka hesabınıza ulaştığında, o satırdaki "Tahsil Et" butonuna basın. Bu işlem, parayı "Bankadan" çıkarıp "Kasaya" (Sıcak Nakit) aktarır.
+## 4. POS Yönetimi ve Banka Takibi (Mutabakat) 🏦
+Bu ekran, bankadaki alacaklarınızı ve harcanabilir nakit akışınızı yönetmenizi sağlar.
+1. **Banka Tahsilatı Gir:** Banka hesabınıza para yattığında (Örn: 5000 TL), bu tutarı kutucuğa yazıp "Tahsilatı Kaydet" butonuna basın.
+2. **FIFO (İlk Giren İlk Çıkar):** Girdiğiniz tutar, en eski bekleyen POS işlemlerinden başlanarak otomatik olarak "Tahsil Edildi" olarak işaretlenir.
+3. **Kısmi Tahsilat:** Eğer bankadan gelen tutar o günkü POS toplamından azsa, o gün "Kısmi" olarak işaretlenir ve sistem size **"Daha [X] TL gelecek alacağınız var"** bilgisini net olarak gösterir.
+4. **Bakiye Kontrolü:** "Toplam Bekleyen (Brüt)", "Tahsil Edilen" ve "Kalan Alacak (Net)" değerlerini anlık olarak takip edebilirsiniz.
 
 ---
 
 ## 5. Dashboard (Ana Ekran) 📊
 İşletmenizin finansal sağlığını anlık olarak takip edin:
-- **💵 Kasada Nakit (Bugün):** O gün cebinize giren toplam nakit paradan o günkü giderleri çıkartarak kalan "harcanabilir" bakiyeyi gösterir.
-- **🏦 Bankada Bekleyen:** Henüz nakde dönmemiş kartlı işlemlerin toplamıdır.
+- **💵 Sıcak Nakit (Kasa):** Şu an elinizde olan gerçek paradır. (Nakit Girişleri + Bankadan Hesabınıza Geçen POS paraları - Harcamalar).
+- **🏦 Bankada Bekleyen:** Henüz bankadan hesabınıza aktarılmamış, gelecek olan alacaklarınızdır.
 - **📈 Trend Grafiği:** Haftalık nakit ve kart gelirlerinizi interaktif bir grafik üzerinde karşılaştırın.
 
 ---

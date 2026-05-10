@@ -1,53 +1,30 @@
-VALEBOOK KULLANIM KILAVUZU 📘
-
-ValeBook, otopark ve kafe vale işletmeleri için özel olarak tasarlanmış, profesyonel bir "Kasa ve Finans Yönetim" masaüstü uygulamasıdır. 
-
----
+VALEBOOK KULLANIM KILAVUZU
 
 1. KURULUM VE İLK AÇILIŞ
-Uygulama kurulum gerektirmez, doğrudan çalıştırılabilir bir formattadır.
-- İndirdiğiniz 'ValeBook_Setup.exe' dosyasına çift tıklayın.
-- Uygulama otomatik olarak kurulup tam ekran olarak açılacaktır.
-- Uygulama her açıldığında internete bağlanır ve bir güncelleme varsa size uyarı verir. (İnternet yoksa da sorunsuz çalışır).
+Uygulama kurulum gerektirmez. ValeBook_Setup.exe ile çalışır. İnternet varsa güncellemeleri otomatik denetler.
 
----
+2. AYARLAR ⚙️
+- İşletme Adı: Otopark adınızı girin.
+- POS Komisyonu: Bankanızın kesinti oranını girin (%1.5 gibi).
+- Kategoriler: Gider tiplerini (Maaş, Kira vb.) buradan ekleyin.
 
-2. İLK ADIM: AYARLAR MENÜSÜ ⚙️
-Uygulamayı kullanmaya başlamadan önce, sol menüden "Ayarlar" sekmesine girmelisiniz.
-- İşletme Adı: Otoparkınızın veya kafenizin adını buraya yazın.
-- Banka POS Komisyon Oranı (%): Kredi kartı ödemelerinden bankanın kestiği oranı girin (Örn: 1.5).
-- Gider Kategorileri: İşletmenizdeki masraf kalemlerini (Örn: Maaş, Kira, Mutfak) buradan yönetebilirsiniz.
+3. GELİR GİRİŞİ 💰
+- Araç sayısını girin ve ödeme yöntemini seçin.
+- POS işlemleri otomatik "Bekleyen" olarak ayrılır.
+- Hata yaparsanız Geri/İleri butonlarını kullanabilirsiniz.
 
----
-
-3. GELİR GİRİŞİ VE VERİ GÜVENLİĞİ 💰
-- Gelir Girişi: Araç sayısını ve tutarı girin. POS ödemeleri sistemde "Beklemede" (Bankada) olarak işaretlenir.
-- Konsolide Görünüm: Aynı güne ait tüm girişleriniz tabloda TEK BİR SATIR olarak toplanır.
-- Geri Al / İleri Al: Bir hata yaptıysanız, "Kaydet" yanındaki ok tuşlarını kullanarak son 5 işlemi geri alabilir veya ileri alabilirsiniz.
-
----
-
-4. POS YÖNETİMİ VE BANKA TAKİBİ 🏦
-- Bankada Bekleyen: Bankanın elinde tuttuğu toplam alacağınızı görebilirsiniz.
-- Tahsil Et: Para banka hesabınıza ulaştığında, "Tahsil Et" butonuna basın. Bu işlem, parayı "Bankadan" çıkarıp "Kasaya" (Sıcak Nakit) aktarır.
-
----
+4. POS YÖNETİMİ VE MUTABAKAT 🏦
+- Banka Tahsilatı Gir: Bankanıza para yattığında tutarı girin.
+- FIFO Mantığı: Sistem otomatik olarak en eski alacaktan başlayarak mahsup eder.
+- Kalan Alacak: Ne kadar daha para geleceğini "Kalan Alacak" sütunundan kuruşu kuruşuna görebilirsiniz.
 
 5. DASHBOARD (ANA EKRAN) 📊
-- 💵 Kasada Nakit (Bugün): Cebinizdeki anlık harcanabilir nakit para (Gelir - Gider).
-- 🏦 Bankada Bekleyen: Henüz nakde dönmemiş kartlı işlemlerin toplamıdır.
-- 📈 Trend Grafiği: Haftalık nakit ve kart gelirlerinizi karşılaştırın.
+- Sıcak Nakit (Kasa): Harcayabileceğiniz net parayı gösterir (Nakit + Bankadan Gelenler - Giderler).
+- Bankada Bekleyen: Henüz bankadan hesabınıza düşmemiş olan alacaklardır.
+- Trend Grafik: Haftalık performansınızı görselleştirir.
 
----
+6. GİDER VE RAPORLAR 📉
+- Giderleri girin, Sıcak Nakit'ten otomatik düşer.
+- Raporlar sayfasından Excel alabilir ve detaylı döküm inceleyebilirsiniz.
 
-6. GİDER GİRİŞİ VE RAPORLAMA 📉
-- Giderler: Harcamalarınızı kategorilere göre girin. Giderler "Kasa" bakiyenizden otomatik düşülür.
-- Raporlar: İstediğiniz tarih aralığını seçerek Excel (XLSX) çıktısı alın.
-
----
-
-7. UYGULAMAYI GÜNCELLEME 🔄
-Uygulama açılışta otomatik kontrol eder. Manuel kontrol için Ayarlar sayfasının altındaki butonu kullanabilirsiniz.
-
----
-MUTLU KAZANÇLAR! 🚀
+Mutlu Kazançlar! v1.1.16
