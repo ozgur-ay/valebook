@@ -45,9 +45,10 @@ function createWindow() {
     // Kendi sunucumuzu yükle
     mainWindow.loadURL('http://localhost:3000');
     
-    // Sayfa yüklendiğinde güncellemeleri kontrol et (Öncesinde yapılırsa mesajlar kaybolabilir)
+    // Sayfa yüklendiğinde güncellemeleri kontrol et (Tag-based otonom check)
     mainWindow.webContents.on('did-finish-load', () => {
-        autoUpdater.checkForUpdatesAndNotify();
+        const { checkUpdateViaTags } = require('./src/updater-core.js');
+        checkUpdateViaTags(mainWindow);
     });
 
     mainWindow.maximize();
@@ -110,12 +111,18 @@ function initAutoUpdater() {
         });
     });
 
-    // Program her açıldığında kontrol et
-    autoUpdater.checkForUpdates();
+    // Program her açıldığında kontrol et - Native check devre dışı (latest.yml 404 hatasını önlemek için)
+    // autoUpdater.checkForUpdates();
 
     // Renderer'dan gelen durum isteklerini cevapla
     ipcMain.handle('get-update-status', () => {
         return updaterState;
+    });
+
+    // Manuel kontrol isteğini karşıla
+    ipcMain.on('trigger-manual-check', () => {
+        const { checkUpdateViaTags } = require('./src/updater-core.js');
+        checkUpdateViaTags(mainWindow);
     });
 }
 
