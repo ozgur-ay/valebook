@@ -42,10 +42,13 @@ function createWindow() {
     mainWindow.setMenuBarVisibility(false);
 
     // Kendi sunucumuzu yükle
-    // Varsayılan port server.js'te 3000
     mainWindow.loadURL('http://localhost:3000');
     
-    // Tam ekran başlat
+    // Sayfa yüklendiğinde güncellemeleri kontrol et (Öncesinde yapılırsa mesajlar kaybolabilir)
+    mainWindow.webContents.on('did-finish-load', () => {
+        autoUpdater.checkForUpdatesAndNotify();
+    });
+
     mainWindow.maximize();
 
     mainWindow.on('closed', function () {
@@ -54,8 +57,8 @@ function createWindow() {
 }
 
 function initAutoUpdater() {
-    // Arka planda indirmeyi isteğe bağlı yapıyoruz.
-    autoUpdater.autoDownload = false; 
+    // Arka planda indirmeyi aktif ediyoruz (Daha stabil ve hızlı aksiyon sağlar)
+    autoUpdater.autoDownload = true; 
 
     autoUpdater.on('checking-for-update', () => {
         console.log('Güncelleme kontrol ediliyor...');
@@ -65,17 +68,7 @@ function initAutoUpdater() {
     autoUpdater.on('update-available', (info) => {
         console.log('Yeni güncelleme bulundu:', info.version);
         if (mainWindow) mainWindow.webContents.send('update-status', { type: 'available', version: info.version });
-        
-        dialog.showMessageBox(mainWindow, {
-            type: 'info',
-            title: 'Yeni Sürüm Mevcut',
-            message: `Yeni bir sürüm (v${info.version}) mevcut. Şimdi indirmek istiyor musunuz?`,
-            buttons: ['İndir', 'Daha Sonra']
-        }).then((result) => {
-            if (result.response === 0) {
-                autoUpdater.downloadUpdate();
-            }
-        });
+        // autoDownload true olduğu için burada tekrar download tetiklemeye gerek yok.
     });
 
     autoUpdater.on('update-not-available', (info) => {
