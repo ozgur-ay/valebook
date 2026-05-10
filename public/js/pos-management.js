@@ -39,6 +39,15 @@ const POS = {
             // Backend'e ham bekleyenleri getiren bir endpoint ekleyelim.
             const pending = await App.fetchAPI('/income/pending-pos');
             this.renderPending(pending);
+
+            // Fokus iyileştirmesi: Küçük bir gecikmeyle fokus ver (Donma/takılmaları önler)
+            setTimeout(() => {
+                const input = document.getElementById('collectAmount');
+                if (input) {
+                    input.focus();
+                    if (input.value) input.select();
+                }
+            }, 100);
         } catch (error) {
             console.error('Pending POS load error:', error);
         }
