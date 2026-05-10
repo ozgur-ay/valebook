@@ -35,37 +35,41 @@ function createWindow() {
 }
 
 function initAutoUpdater() {
-    // Otomatik indirmeyi durdur, kullanıcıya biz soracağız.
-    autoUpdater.autoDownload = false;
+    // Arka planda indirmeyi aktif ediyoruz, bu daha stabil bir yöntemdir.
+    autoUpdater.autoDownload = true;
+
+    autoUpdater.on('checking-for-update', () => {
+        console.log('Güncelleme kontrol ediliyor...');
+    });
 
     autoUpdater.on('update-available', (info) => {
-        dialog.showMessageBox(mainWindow, {
-            type: 'info',
-            title: 'Yeni Güncelleme Mevcut!',
-            message: `ValeBook'un yeni bir sürümü (v${info.version}) yayınlanmış.\n\nGüncellemeyi şimdi indirip kurmak ister misiniz?`,
-            buttons: ['Evet, Güncelle', 'Daha Sonra']
-        }).then((result) => {
-            if (result.response === 0) {
-                autoUpdater.downloadUpdate();
-            }
-        });
+        console.log('Yeni güncelleme bulundu:', info.version);
+        // İndirme otomatik başladığı için burada sadece logluyoruz.
     });
 
-    autoUpdater.on('update-downloaded', () => {
+    autoUpdater.on('update-not-available', (info) => {
+        console.log('Güncelleme yok.');
+    });
+
+    autoUpdater.on('error', (err) => {
+        console.error('Güncelleyici hatası:', err);
+    });
+
+    autoUpdater.on('update-downloaded', (info) => {
+        console.log('Güncelleme indirildi:', info.version);
         dialog.showMessageBox(mainWindow, {
             type: 'info',
-            title: 'Güncelleme Hazır',
-            message: 'Güncelleme başarıyla indirildi. Kurulum için program yeniden başlatılacak.',
-            buttons: ['Tamam, Yeniden Başlat']
+            title: 'ValeBook Güncelleme',
+            message: `Yeni sürüm (v${info.version}) hazır! Kurulumun tamamlanması için uygulama şimdi kapatılıp yeniden başlatılacak.`,
+            buttons: ['Şimdi Güncelle ve Başlat']
         }).then(() => {
-            autoUpdater.quitAndInstall(false, true);
+            // quitAndInstall çağrısı öncesi tüm pencereleri kapatmaya zorla
+            setImmediate(() => autoUpdater.quitAndInstall(false, true));
         });
     });
 
-    // Program her açıldığında fark ettirmeden güncellemeleri kontrol et
-    autoUpdater.checkForUpdates().catch(err => {
-        console.warn("Açılışta güncelleme denetimi başarısız:", err.message);
-    });
+    // Program her açıldığında kontrol et
+    autoUpdater.checkForUpdates();
 }
 
 app.on('ready', () => {

@@ -46,10 +46,10 @@ router.get('/check', async (req, res) => {
 router.post('/install', async (req, res) => {
     try {
         if (autoUpdater) {
-            // Because autoDownload is disabled in main.js, we MUST trigger the download explicitly first.
-            // main.js will catch the 'update-downloaded' event and display the native prompt to Restart.
-            autoUpdater.downloadUpdate().catch(e => console.error("Download update error:", e));
-            return res.json({ success: true, log: "Electron autoUpdater triggered downloadUpdate." });
+            // Since autoDownload is now TRUE in main.js, we just need to trigger a check.
+            // It will see the newer version, download it, and main.js will show the Restart popup.
+            autoUpdater.checkForUpdates().catch(e => console.error("Manual check error:", e));
+            return res.json({ success: true, log: "Manual check triggered (result in main process)." });
         }
         res.status(400).json({ error: "Güncelleyici bulunamadı (Electron ortamı değil)." });
     } catch (error) {
