@@ -147,6 +147,29 @@ router.post('/collect-amount', (req, res) => {
     }
 });
 
+// Tüm bekleyen POS'ları tek tıkla tahsil et
+router.post('/collect-all-pos', (req, res) => {
+    try {
+        const commissionSetting = db.prepare('SELECT value FROM settings WHERE key = "pos_commission_rate"').get();
+        const rate = commissionSetting ? parseFloat(commissionSetting.value) : 0;
+        
+        // Önemli: Tüm bekleyenlerin collected_amount değerini net beklentiye eşitle
+        db.prepare(`
+            UPDATE income 
+            SET pos_status = 'collected', 
+                pos_collected_date = ?, 
+                pos_collected_amount = card_amount * (1 - ? / 100)
+            WHERE payment_method IN ("credit_card", "mixed") 
+            AND pos_status != 'collected' 
+            AND is_deleted = 0
+        `).run(new Date().toISOString().split('T')[0], rate);
+
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Yeni gelir ekle
 router.post('/', (req, res) => {
     try {
