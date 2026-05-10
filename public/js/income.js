@@ -79,13 +79,11 @@ const Income = {
                     method: 'POST',
                     body: JSON.stringify(data)
                 });
-                form.reset();
-                this.setToday();
-                await this.loadSettings();
                 await this.loadHistory();
-                alert('Gelir kaydı başarıyla eklendi.');
+                App.showToast('Gelir kaydı başarıyla eklendi.');
+                vehicleInput.focus(); // Form resetlendiği için odağı geri al
             } catch (error) {
-                alert('Kayıt sırasında hata oluştu: ' + error.message);
+                App.showToast('Kayıt sırasında hata oluştu: ' + error.message, 'danger');
             }
         });
     },
@@ -120,8 +118,9 @@ const Income = {
         try {
             await App.fetchAPI(`/income/${id}`, { method: 'DELETE' });
             await this.loadHistory();
+            App.showToast('Kayıt silindi.', 'warning');
         } catch (error) {
-            alert('Silme işlemi başarısız.');
+            App.showToast('Silme işlemi başarısız.', 'danger');
         }
     }
 };

@@ -64,6 +64,24 @@ const App = {
             console.error('API Error:', error);
             throw error;
         }
+    },
+
+    // Bildirim göster (Alert alternatifi, odağı bozmaz)
+    showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerText = message;
+        
+        document.body.appendChild(toast);
+        
+        // Animasyon için bir sonraki frame'de 'show' ekle
+        setTimeout(() => toast.classList.add('show'), 100);
+        
+        // 3 saniye sonra kaldır
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 };
 

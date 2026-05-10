@@ -41,9 +41,9 @@ const Settings = {
                     method: 'PUT',
                     body: JSON.stringify(data)
                 });
-                alert('Ayarlar kaydedildi.');
+                App.showToast('Ayarlar kaydedildi.');
             } catch (error) {
-                alert('Kayıt hatası.');
+                App.showToast('Kayıt hatası.', 'danger');
             }
         };
     },
@@ -80,8 +80,9 @@ const Settings = {
             });
             input.value = '';
             await this.loadCategories();
+            App.showToast('Kategori eklendi.');
         } catch (error) {
-            alert('Kategori eklenemedi.');
+            App.showToast('Kategori eklenemedi.', 'danger');
         }
     },
 
@@ -135,10 +136,9 @@ const Settings = {
         
         try {
             await App.fetchAPI('/update/install', { method: 'POST' });
-            alert('Güncelleme başarıyla tamamlandı. Uygulamanın yeniden başlatılması gerekebilir.');
-            location.reload();
+            App.showToast('Güncelleme başlatıldı...', 'warning');
         } catch (error) {
-            alert('Güncelleme yüklenirken hata oluştu.');
+            App.showToast('Güncelleme yüklenirken hata oluştu.', 'danger');
         }
     }
 };

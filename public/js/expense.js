@@ -59,9 +59,10 @@ const Expense = {
                 form.reset();
                 this.setToday();
                 await this.loadHistory();
-                alert('Gider kaydı başarıyla eklendi.');
+                App.showToast('Gider kaydı başarıyla eklendi.');
+                document.getElementById('category').focus();
             } catch (error) {
-                alert('Kayıt sırasında hata oluştu: ' + error.message);
+                App.showToast('Kayıt sırasında hata oluştu: ' + error.message, 'danger');
             }
         });
     },
@@ -95,8 +96,9 @@ const Expense = {
         try {
             await App.fetchAPI(`/expense/${id}`, { method: 'DELETE' });
             await this.loadHistory();
+            App.showToast('Gider kaydı silindi.', 'warning');
         } catch (error) {
-            alert('Silme işlemi başarısız.');
+            App.showToast('Silme işlemi başarısız.', 'danger');
         }
     }
 };
