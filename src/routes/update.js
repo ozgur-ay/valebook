@@ -13,6 +13,10 @@ try {
     console.warn("Electron ortamı bulunamadı, autoUpdater devre dışı.");
 }
 
+router.get('/version', (req, res) => {
+    res.json({ current: pkg.version });
+});
+
 router.get('/check', async (req, res) => {
     try {
         if (!autoUpdater) {

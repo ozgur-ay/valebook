@@ -11,7 +11,7 @@ const Settings = {
 
     async updateVersionInfo() {
         try {
-            const result = await App.fetchAPI('/update/check');
+            const result = await App.fetchAPI('/update/version');
             document.getElementById('currentVersion').innerText = 'v' + result.current;
         } catch (e) {
             document.getElementById('currentVersion').innerText = 'vX.X.X (Bilinmiyor)';

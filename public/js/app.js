@@ -28,7 +28,7 @@ const App = {
         const el = document.getElementById('versionDisplay');
         if (el) {
             try {
-                const res = await fetch('/api/update/check');
+                const res = await fetch('/api/update/version');
                 const data = await res.json();
                 el.innerText = 'ValeBook v' + (data.current || 'X.X.X');
             } catch (e) {
