@@ -35,9 +35,9 @@
                     <div style="display: flex; gap: 1rem; align-items: flex-end;">
                         <div class="form-group" style="flex: 1; margin-bottom: 0;">
                             <label for="collectAmount">Bankadan Yatan Net Tutar (₺)</label>
-                            <input type="number" id="collectAmount" step="0.01" placeholder="Örn: 5000.00">
+                            <input type="number" id="collectAmount" step="0.01" placeholder="0.00" autofocus style="font-size: 1.5rem; height: 50px; font-weight: 700;">
                         </div>
-                        <button class="btn btn-primary" onclick="POS.collectAmount()" style="height: 42px;">Tahsilatı Kaydet</button>
+                        <button class="btn btn-primary" onclick="POS.collectAmount()" style="height: 50px; padding: 0 2rem;">Tahsilatı Kaydet</button>
                     </div>
                     <p style="margin-top: 1rem; font-size: 0.8125rem; color: var(--text-gray);">
                         * Girdiğiniz tutar, en eski bekleyen POS işlemlerinden başlanarak otomatik mahsup edilir.

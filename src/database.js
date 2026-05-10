@@ -98,6 +98,16 @@ const applyMigrations = () => {
             }
         }
     });
+
+    // --- Veri Düzeltme (v1.1.17) ---
+    // Eğer pos_status 'na' ise ve ödeme yöntemi kart ise 'pending' yap (Eski veriler için)
+    db.exec(`
+        UPDATE income 
+        SET pos_status = 'pending' 
+        WHERE pos_status = 'na' 
+        AND payment_method IN ('credit_card', 'mixed')
+        AND is_deleted = 0
+    `);
 };
 
 applyMigrations();
