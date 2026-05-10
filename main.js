@@ -1,5 +1,6 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, dialog } = require('electron');
 const path = require('path');
+const { autoUpdater } = require('electron-updater');
 
 // Express sunucusunu başlatıyoruz.
 // İçinde yer alan 'open' (tarayıcı açma) paketi electron içindeysek engellendi.
@@ -12,7 +13,6 @@ function createWindow() {
         width: 1280,
         height: 800,
         title: "ValeBook",
-        // icon: path.join(__dirname, 'build', 'icon.ico'), // İkonu sonra ekleyeceğiz
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true
@@ -34,8 +34,43 @@ function createWindow() {
     });
 }
 
+function initAutoUpdater() {
+    // Otomatik indirmeyi durdur, kullanıcıya biz soracağız.
+    autoUpdater.autoDownload = false;
+
+    autoUpdater.on('update-available', (info) => {
+        dialog.showMessageBox(mainWindow, {
+            type: 'info',
+            title: 'Yeni Güncelleme Mevcut!',
+            message: `ValeBook'un yeni bir sürümü (v${info.version}) yayınlanmış.\n\nGüncellemeyi şimdi indirip kurmak ister misiniz?`,
+            buttons: ['Evet, Güncelle', 'Daha Sonra']
+        }).then((result) => {
+            if (result.response === 0) {
+                autoUpdater.downloadUpdate();
+            }
+        });
+    });
+
+    autoUpdater.on('update-downloaded', () => {
+        dialog.showMessageBox(mainWindow, {
+            type: 'info',
+            title: 'Güncelleme Hazır',
+            message: 'Güncelleme başarıyla indirildi. Kurulum için program yeniden başlatılacak.',
+            buttons: ['Tamam, Yeniden Başlat']
+        }).then(() => {
+            autoUpdater.quitAndInstall(false, true);
+        });
+    });
+
+    // Program her açıldığında fark ettirmeden güncellemeleri kontrol et
+    autoUpdater.checkForUpdates().catch(err => {
+        console.warn("Açılışta güncelleme denetimi başarısız:", err.message);
+    });
+}
+
 app.on('ready', () => {
     createWindow();
+    initAutoUpdater();
 });
 
 app.on('window-all-closed', function () {
