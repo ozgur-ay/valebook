@@ -51,6 +51,7 @@ router.post('/', (req, res) => {
 
         res.json({ id: info.lastInsertRowid });
     } catch (error) {
+        console.error('Income POST error:', error);
         res.status(500).json({ error: error.message });
     }
 });

@@ -85,7 +85,7 @@ const Income = {
                 await this.loadHistory();
                 alert('Gelir kaydı başarıyla eklendi.');
             } catch (error) {
-                alert('Kayıt sırasında hata oluştu.');
+                alert('Kayıt sırasında hata oluştu: ' + error.message);
             }
         });
     },

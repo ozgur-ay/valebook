@@ -61,7 +61,7 @@ const Expense = {
                 await this.loadHistory();
                 alert('Gider kaydı başarıyla eklendi.');
             } catch (error) {
-                alert('Kayıt sırasında hata oluştu.');
+                alert('Kayıt sırasında hata oluştu: ' + error.message);
             }
         });
     },

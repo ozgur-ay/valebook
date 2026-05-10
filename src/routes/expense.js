@@ -39,6 +39,7 @@ router.post('/', (req, res) => {
         const info = stmt.run(date, category, description, amount, payment_method, document_no, note);
         res.json({ id: info.lastInsertRowid });
     } catch (error) {
+        console.error('Expense POST error:', error);
         res.status(500).json({ error: error.message });
     }
 });
