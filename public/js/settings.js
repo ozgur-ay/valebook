@@ -91,6 +91,17 @@ const Settings = {
         }
     },
 
+    async restoreDefaultCategories() {
+        if (!confirm('Silinmiş olan varsayılan kategoriler yeniden eklensin mi?')) return;
+        try {
+            await App.fetchAPI('/settings/categories/restore-defaults', { method: 'POST' });
+            await this.loadCategories();
+            alert('Varsayılan kategoriler başarıyla geri yüklendi.');
+        } catch (error) {
+            alert(error.message || 'Geri yükleme işlemi başarısız.');
+        }
+    },
+
     // Güncelleme Kontrolü
     async checkUpdates() {
         const btn = document.getElementById('checkUpdateBtn');

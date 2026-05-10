@@ -47,6 +47,29 @@ router.get('/categories', (req, res) => {
     }
 });
 
+// Varsayılan kategorileri geri yükle
+router.post('/categories/restore-defaults', (req, res) => {
+    try {
+        const defaultCategories = [
+            'Personel', 'Aidat', 'Bakım-Onarım', 'Vergi & SGK', 
+            'POS Komisyonu', 'Sigorta', 'Malzeme/Sarf', 'Diğer'
+        ];
+        
+        const stmt = db.prepare('INSERT OR IGNORE INTO expense_categories (name, is_default) VALUES (?, 1)');
+        
+        const transaction = db.transaction((cats) => {
+            for (const cat of cats) {
+                stmt.run(cat);
+            }
+        });
+        
+        transaction(defaultCategories);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Yeni kategori ekle
 router.post('/categories', (req, res) => {
     try {
