@@ -48,7 +48,9 @@ function createWindow() {
     // Sayfa yüklendiğinde güncellemeleri kontrol et (Tag-based otonom check + Pop-up)
     mainWindow.webContents.on('did-finish-load', () => {
         const { checkUpdateViaTags } = require('./src/updater-core.js');
-        checkUpdateViaTags(mainWindow, true);
+        checkUpdateViaTags(mainWindow, true).then(result => {
+            if (result) updaterState = result;
+        });
     });
 
     mainWindow.maximize();

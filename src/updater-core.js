@@ -15,8 +15,9 @@ async function checkUpdateViaTags(mainWindow, showDialog = false) {
         const tags = await response.json();
         
         if (!Array.isArray(tags) || tags.length === 0) {
-            mainWindow.webContents.send('update-status', { type: 'not-available' });
-            return;
+            const noTags = { type: 'not-available' };
+            mainWindow.webContents.send('update-status', noTags);
+            return noTags;
         }
 
         const latestTag = tags[0].name.replace('v', '');
@@ -43,15 +44,20 @@ async function checkUpdateViaTags(mainWindow, showDialog = false) {
                     }
                 });
             }
+            return { type: 'available', version: latestTag };
         } else {
-            mainWindow.webContents.send('update-status', { type: 'not-available' });
+            const upToDate = { type: 'not-available' };
+            mainWindow.webContents.send('update-status', upToDate);
+            return upToDate;
         }
     } catch (error) {
         console.error('Tag based update check failed:', error);
-        mainWindow.webContents.send('update-status', { 
+        const errorState = { 
             type: 'error', 
             message: 'Güncelleme kontrolü başarısız oldu (GitHub API).' 
-        });
+        };
+        mainWindow.webContents.send('update-status', errorState);
+        return errorState;
     }
 }
 
