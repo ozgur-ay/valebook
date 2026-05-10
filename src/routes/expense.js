@@ -26,6 +26,16 @@ router.get('/', (req, res) => {
     }
 });
 
+// En son girilen gideri getir
+router.get('/last', (req, res) => {
+    try {
+        const row = db.prepare('SELECT * FROM expense ORDER BY created_at DESC LIMIT 1').get();
+        res.json(row || {});
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Yeni gider ekle
 router.post('/', (req, res) => {
     try {

@@ -6,12 +6,30 @@ const Expense = {
     async init() {
         this.setupForm();
         await this.loadCategories();
+        await this.loadLastEntry();
         await this.loadHistory();
         this.setToday();
     },
 
     setToday() {
         document.getElementById('date').value = new Date().toISOString().split('T')[0];
+    },
+
+    // En son gideri hatırla
+    async loadLastEntry() {
+        try {
+            const last = await App.fetchAPI('/expense/last');
+            if (last && last.id) {
+                document.getElementById('category').value = last.category;
+                document.getElementById('description').value = last.description;
+                document.getElementById('amount').value = last.amount;
+                document.getElementById('paymentMethod').value = last.payment_method;
+                document.getElementById('documentNo').value = last.document_no || '';
+                document.getElementById('note').value = last.note || '';
+            }
+        } catch (error) {
+            console.error('Last expense load error:', error);
+        }
     },
 
     // Kategorileri yükle
@@ -56,11 +74,9 @@ const Expense = {
                     method: 'POST',
                     body: JSON.stringify(data)
                 });
-                form.reset();
-                this.setToday();
                 await this.loadHistory();
                 App.showToast('Gider kaydı başarıyla eklendi.');
-                document.getElementById('category').focus();
+                document.getElementById('amount').focus();
             } catch (error) {
                 App.showToast('Kayıt sırasında hata oluştu: ' + error.message, 'danger');
             }

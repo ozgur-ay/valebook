@@ -5,9 +5,9 @@
 const Income = {
     async init() {
         this.setupForm();
-        await this.loadSettings();
+        await this.loadLastEntry(); // Önce son veriyi çek
         await this.loadHistory();
-        this.setToday();
+        this.setToday(); // Tarihi bugüne sabitle
     },
 
     setToday() {
@@ -15,12 +15,34 @@ const Income = {
     },
 
     // Tarihi bugün yap(birim ücret) yükle
-    async loadSettings() {
+    // En son girilen kaydı forma doldur (Hatırlatma özelliği)
+    async loadLastEntry() {
         try {
-            // Şu an için varsayılan 50 TL, ayarlar API'si bitince oradan gelecek
-            document.getElementById('unitFee').value = 50;
+            const last = await App.fetchAPI('/income/last');
+            if (last && last.id) {
+                document.getElementById('vehicleCount').value = last.vehicle_count || '';
+                document.getElementById('unitFee').value = last.unit_fee || 50;
+                document.getElementById('paymentMethod').value = last.payment_method || 'cash';
+                document.getElementById('note').value = last.note || '';
+                
+                // Toplamı ve görünürlüğü tetikle
+                const event = new Event('change');
+                document.getElementById('paymentMethod').dispatchEvent(event);
+                const inputEvent = new Event('input');
+                document.getElementById('vehicleCount').dispatchEvent(inputEvent);
+                
+                // Karışık ödeme ise rakamları da çek
+                if (last.payment_method === 'mixed') {
+                    document.getElementById('cashAmount').value = last.cash_amount;
+                    document.getElementById('cardAmount').value = last.card_amount;
+                }
+            } else {
+                // Hiç kayıt yoksa varsayılan ayarları yükle
+                await this.loadSettings();
+            }
         } catch (error) {
-            console.error('Settings load error:', error);
+            console.error('Last entry load error:', error);
+            await this.loadSettings();
         }
     },
 
@@ -81,7 +103,9 @@ const Income = {
                 });
                 await this.loadHistory();
                 App.showToast('Gelir kaydı başarıyla eklendi.');
-                vehicleInput.focus(); // Form resetlendiği için odağı geri al
+                // Formu tamamen temizlemek yerine son verileri koruyoruz
+                // Sadece araç sayısına odaklan
+                document.getElementById('vehicleCount').focus();
             } catch (error) {
                 App.showToast('Kayıt sırasında hata oluştu: ' + error.message, 'danger');
             }

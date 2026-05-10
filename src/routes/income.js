@@ -25,6 +25,16 @@ router.get('/', (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+ 
+// En son girilen kaydı getir (Hatırlatıcı özelliği için)
+router.get('/last', (req, res) => {
+    try {
+        const row = db.prepare('SELECT * FROM income ORDER BY created_at DESC LIMIT 1').get();
+        res.json(row || {});
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 // Yeni gelir ekle
 router.post('/', (req, res) => {
