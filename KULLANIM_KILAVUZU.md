@@ -51,4 +51,4 @@ Bu ekran, bankadaki alacaklarınızı ve nakit akışınızı yönetmenizi sağl
 
 ---
 
-**Mutlu Kazançlar!** 🚀 (v1.1.34)
+**Mutlu Kazançlar!** 🚀 (v1.1.39)

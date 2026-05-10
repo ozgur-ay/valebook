@@ -29,4 +29,4 @@ Uygulama kurulum gerektirmez. ValeBook.exe ile çalışır. İnternet varsa gün
 - Detaylı Hareketler: Her bir girişin brüt, komisyon ve net tutarını görebilirsiniz.
 - Excel Çıktısı: Alınan Excel dosyasında "Banka Kesintisi" ve "Net Tutar" sütunları otomatik eklenir.
 
-Mutlu Kazançlar! v1.1.34
+Mutlu Kazançlar! v1.1.39
