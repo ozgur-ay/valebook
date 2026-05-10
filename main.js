@@ -6,8 +6,30 @@ const { autoUpdater } = require('electron-updater');
 // İçinde yer alan 'open' (tarayıcı açma) paketi electron içindeysek engellendi.
 require('./server.js');
 
-let mainWindow;
-let updaterState = { type: 'idle' };
+// Uygulama tekil kilit mekanizması (Single Instance Lock)
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+    // Eğer kilit alınamadıysa zaten bir kopya çalışıyordur.
+    console.log('Uygulama zaten açık. İkinci kopya kapatılıyor.');
+    
+    // Uygulama henüz 'ready' olmadan diyalog gösteremeyebiliriz, bu yüzden basit bir hata kutusu kullanıyoruz.
+    dialog.showErrorBox(
+        'ValeBook Zaten Çalışıyor',
+        'Uygulamanın bir kopyası zaten açık. Lütfen çalışan uygulamayı kullanın.'
+    );
+    app.quit();
+} else {
+    app.on('second-instance', (event, commandLine, workingDirectory) => {
+        // Birisi ikinci bir kopya açmaya çalıştığında, ana pencereyi odakla.
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.focus();
+        }
+    });
+
+    let mainWindow;
+    let updaterState = { type: 'idle' };
 
 function createWindow() {
     mainWindow = new BrowserWindow({
