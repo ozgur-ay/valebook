@@ -171,3 +171,4 @@ app.on('window-all-closed', function () {
 app.on('activate', function () {
     if (mainWindow === null) createWindow();
 });
+} // <--- Single instance else bloğu burada kapanıyor v1.1.80
