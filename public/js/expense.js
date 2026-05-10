@@ -126,21 +126,89 @@ const Expense = {
             const tbody = document.querySelector('#expenseTable tbody');
             tbody.innerHTML = '';
 
-            history.forEach(item => {
+            history.forEach((item, index) => {
                 const tr = document.createElement('tr');
+                tr.className = 'expandable-row';
+                tr.dataset.index = index;
                 tr.innerHTML = `
-                    <td>${new Date(item.date).toLocaleDateString('tr-TR')}</td>
-                    <td>${item.category}</td>
+                    <td>
+                        <span class="toggle-icon">▶</span>
+                        ${new Date(item.date).toLocaleDateString('tr-TR')}
+                    </td>
+                    <td><span class="category-badge">${item.category}</span></td>
                     <td>${item.description}</td>
                     <td class="text-danger">-${App.formatCurrency(item.amount)}</td>
                     <td>
-                        <button class="btn-sm btn-danger" onclick="Expense.deleteItem(${item.id})">Sil</button>
+                        <small style="color:var(--text-gray)">Detay için tıkla</small>
                     </td>
                 `;
+                
+                tr.addEventListener('click', () => this.toggleDetails(tr, item));
                 tbody.appendChild(tr);
+
+                // Gizli detay satırı
+                const detailTr = document.createElement('tr');
+                detailTr.className = 'details-row';
+                detailTr.id = `details-${index}`;
+                detailTr.style.display = 'none';
+                detailTr.innerHTML = `<td colspan="5" class="details-container"></td>`;
+                tbody.appendChild(detailTr);
             });
         } catch (error) {
             console.error('History load error:', error);
+        }
+    },
+
+    toggleDetails(row, data) {
+        const index = row.dataset.index;
+        const detailRow = document.getElementById(`details-${index}`);
+        const isActive = row.classList.contains('active');
+
+        // Diğerlerini kapat
+        document.querySelectorAll('.expandable-row').forEach(r => r.classList.remove('active'));
+        document.querySelectorAll('.details-row').forEach(r => r.style.display = 'none');
+
+        if (!isActive) {
+            row.classList.add('active');
+            detailRow.style.display = 'table-row';
+            
+            const container = detailRow.querySelector('.details-container');
+            
+            // Detayları parset
+            const items = data.details ? data.details.split(';;;') : [];
+            let detailHtml = `
+                <div class="details-content">
+                    <table class="details-table">
+                        <thead>
+                            <tr>
+                                <th>Kategori</th>
+                                <th>Açıklama</th>
+                                <th>Tutar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            items.forEach(itemStr => {
+                const [cat, desc, amt] = itemStr.split(':::');
+                detailHtml += `
+                    <tr>
+                        <td><span class="category-badge">${cat}</span></td>
+                        <td>${desc || '-'}</td>
+                        <td class="text-danger">-${App.formatCurrency(parseFloat(amt))}</td>
+                    </tr>
+                `;
+            });
+
+            detailHtml += `
+                        </tbody>
+                    </table>
+                    <div style="margin-top: 1rem; display: flex; gap: 1rem; justify-content: flex-end;">
+                         <small style="color:var(--text-gray)">* Düzenlemek veya silmek için Raporlar sayfasını kullanın.</small>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = detailHtml;
         }
     },
 

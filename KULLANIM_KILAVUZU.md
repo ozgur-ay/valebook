@@ -45,7 +45,8 @@ Bu ekran, henüz hesabınıza geçmemiş paraları yönetmenizi sağlar.
 
 ## 6. Gider Girişi ve Raporlama 📉
 - **Giderler:** Harcamalarınızı kategorilere göre girin. Giderleriniz "Sıcak Nakit" bakiyenizden otomatik olarak düşülür.
-- **Raporlar:** İstediğiniz tarih aralığını seçerek Excel (XSLX) çıktısı alın. Excel dosyasında tüm işlem detayları ve POS tahsilat tarihleri yer alır.
+- **Raporlar:** İstediğiniz tarih aralığını seçin. Rapor sayfasında hem kategorilere göre **Özet Dağılımı** hem de tüm harcamaların tek tek listelendiği **Detaylı İşlem Hareketleri** tablosunu görebilirsiniz.
+- **Excel:** Excel (XLSX) çıktısı ile tüm bu verileri muhasebecinize gönderebilirsiniz.
 
 ---
 
