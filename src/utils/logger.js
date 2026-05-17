@@ -2,15 +2,30 @@ const fs = require('fs');
 const path = require('path');
 
 let LOG_FILE, OLD_LOG_FILE;
-try {
-    const { app } = require('electron');
-    const userData = app.getPath('userData');
-    LOG_FILE = path.join(userData, 'valebook-app.log');
-    OLD_LOG_FILE = path.join(userData, 'valebook-app.old.log');
-} catch (error) {
-    LOG_FILE = path.join(__dirname, '../../valebook-app.log');
-    OLD_LOG_FILE = path.join(__dirname, '../../valebook-app.old.log');
+
+function initPaths() {
+    try {
+        // Electron ortamındaysak userData klasörü en güvenli limandır
+        const { app } = require('electron');
+        const userData = app.getPath('userData');
+        LOG_FILE = path.join(userData, 'valebook-app.log');
+        OLD_LOG_FILE = path.join(userData, 'valebook-app.old.log');
+    } catch (error) {
+        // Electron yoksa (dev mod / node server.js) APPDATA'yı manuel bul
+        const homeDir = process.env.APPDATA || (process.platform === 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + '/.local/share');
+        const dbDir = path.join(homeDir, 'ValeBook');
+        if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
+        
+        LOG_FILE = path.join(dbDir, 'valebook-app.log');
+        OLD_LOG_FILE = path.join(dbDir, 'valebook-app.old.log');
+    }
 }
+
+initPaths();
+
+// İlk açılışta hangi dosyaya yazacağımızı konsola basalım (hata tespiti için)
+console.log('Logging to:', LOG_FILE);
+
 
 const MAX_LOG_SIZE = 2 * 1024 * 1024; // 2MB Kapasite Limiti
 

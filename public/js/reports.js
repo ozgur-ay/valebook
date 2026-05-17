@@ -21,6 +21,16 @@ const Reports = {
         try {
             const data = await App.fetchAPI(`/reports/summary?from=${from}&to=${to}`);
             
+            if (data.error) {
+                alert('Sunucu Hatası: ' + data.error);
+                return;
+            }
+
+            if (!data.summary) {
+                alert('Rapor verisi alınamadı. Lütfen kayıtlarınızı kontrol edin.');
+                return;
+            }
+            
             document.getElementById('reportResults').style.display = 'block';
             document.getElementById('reportIncome').innerText = App.formatCurrency(data.summary.total_income);
             document.getElementById('reportExpense').innerText = App.formatCurrency(data.summary.total_expense);

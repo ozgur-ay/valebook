@@ -22,10 +22,10 @@ router.post('/', async (req, res) => {
 
         const { LOG_FILE, OLD_LOG_FILE } = require('../utils/logger.js');
         
-        let logContent = `--- ValeBook Diagnostic Log ---\n Tarih: ${new Date().toISOString()}\n İşletim Sistemi: ${process.platform} ${process.arch}\n Node Sürümü: ${process.version}\n Açık Kalma Süresi: ${process.uptime()} sn\n\n`;
+        let logContent = `--- ValeBook Diagnostic Log ---\n Tarih: ${new Date().toISOString()}\n Version: ${process.env.npm_package_version || '1.1.100+'}\n İşletim Sistemi: ${process.platform} ${process.arch}\n Node Sürümü: ${process.version}\n Açık Kalma Süresi: ${process.uptime()} sn\n\n`;
         logContent += `--- HISTORICAL LOGS ---\n`;
         
-        if (fs.existsSync(OLD_LOG_FILE)) {
+        if (OLD_LOG_FILE && fs.existsSync(OLD_LOG_FILE)) {
             logContent += fs.readFileSync(OLD_LOG_FILE, 'utf8');
         }
         if (fs.existsSync(LOG_FILE)) {

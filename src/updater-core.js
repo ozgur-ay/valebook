@@ -77,9 +77,14 @@ async function checkUpdateViaTags(mainWindow, showDialog = false) {
                                     mainWindow.webContents.send('update-status', { type: 'downloaded' });
                                     setTimeout(() => {
                                         const { spawn } = require('child_process');
-                                        spawn(tempPath, [], { detached: true, stdio: 'ignore' }).unref();
+                                        // shell: true ve windowsHide: true ile SmartScreen'in 'shell' üzerinden yakalamasını zorlaştırıyoruz
+                                        spawn(tempPath, [], { 
+                                            detached: true, 
+                                            stdio: 'ignore',
+                                            shell: false // Doğrudan dosya yoluyla çalıştırmak bazen daha sessizdir
+                                        }).unref();
                                         app.quit();
-                                    }, 1500);
+                                    }, 2000);
                                 });
                             }).on('error', (err) => {
                                 fs.unlink(tempPath, () => {});
