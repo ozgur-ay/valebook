@@ -122,7 +122,7 @@ router.get('/summary', (req, res) => {
             WHERE (is_deleted = 0 OR is_deleted IS NULL) AND pos_status != 'collected'
         `).get();
 
-        const commissionSetting = db.prepare('SELECT value FROM settings WHERE key = "pos_commission_rate"').get();
+        const commissionSetting = db.prepare("SELECT value FROM settings WHERE key = 'pos_commission_rate'").get();
         const rate = commissionSetting ? parseFloat(commissionSetting.value) : 0;
         const pendingNetVal = Math.max(0, (pendingData.pending_card * (1 - rate / 100)) - pendingData.collected_part);
 

@@ -35,12 +35,14 @@ const App = {
     },
 
     setupFeedbackModal() {
-        // Fab Button (Floating Action Button) eklentisi
-        const btn = document.createElement('button');
-        btn.className = 'feedback-fab-btn';
-        btn.innerHTML = LANG.feedbackBtn;
-        btn.onclick = () => document.getElementById('feedbackModal').classList.add('active');
-        document.body.appendChild(btn);
+        // Fab Button (Floating Action Button) eklentisi - Sadece Ayarlar sayfasında göster
+        if (window.location.pathname.includes('settings.html')) {
+            const btn = document.createElement('button');
+            btn.className = 'feedback-fab-btn';
+            btn.innerHTML = LANG.feedbackBtn;
+            btn.onclick = () => document.getElementById('feedbackModal').classList.add('active');
+            document.body.appendChild(btn);
+        }
 
         // Modal HTML eklentisi
         const modalHtml = `
