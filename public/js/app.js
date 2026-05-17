@@ -153,7 +153,10 @@ const App = {
                 const title = document.getElementById('updateTitle');
                 const desc = document.getElementById('updateText');
 
-                if (status.type === 'progress') {
+                if (status.type === 'checking' || status.type === 'available') {
+                    // Sadece toast göster, overlay indirme başlayınca açılacak
+                    // this.showToast('Güncelleme kontrol ediliyor...', 'info');
+                } else if (status.type === 'progress') {
                     overlay.classList.add('active');
                     const percent = Math.floor(status.percent);
                     fill.style.width = percent + '%';

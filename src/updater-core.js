@@ -55,6 +55,7 @@ async function checkUpdateViaTags(mainWindow, showDialog = false) {
                         const file = fs.createWriteStream(tempPath);
                         
                         const handleDownload = (url) => {
+                            mainWindow.webContents.send('update-status', { type: 'progress', percent: 1 });
                             https.get(url, {
                                 headers: { 'User-Agent': 'ValeBook' }
                             }, (response) => {
