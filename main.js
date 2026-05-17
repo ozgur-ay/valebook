@@ -61,6 +61,10 @@ function createWindow() {
 
     // Otomatik Dosya Açma (Download tamamlanınca açar) ve İlerleme Bildirimi
     session.defaultSession.on('will-download', (event, item, webContents) => {
+        // İndirme penceresini (Save As) engelleyip doğrudan İndirilenler klasörüne kaydet
+        const downloadPath = path.join(app.getPath('downloads'), item.getFilename());
+        item.setSavePath(downloadPath);
+
         item.on('updated', (event, state) => {
             if (state === 'interrupted') {
                 console.log('İndirme kesildi');
