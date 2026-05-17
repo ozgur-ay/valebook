@@ -61,46 +61,6 @@ function createWindow() {
         }
     });
 
-    // Otomatik Dosya Açma (Download tamamlanınca açar) ve İlerleme Bildirimi
-    mainWindow.webContents.session.on('will-download', (event, item, webContents) => {
-        // İndirme penceresini (Save As) engelleyip doğrudan Temp klasörüne kaydet (İzin/Çakışma garantisi)
-        const downloadPath = path.join(app.getPath('temp'), `valebook_update_${Date.now()}.exe`);
-        item.setSavePath(downloadPath);
-
-        item.on('updated', (event, state) => {
-            if (state === 'interrupted') {
-                console.log('İndirme kesildi');
-                mainWindow.webContents.send('update-status', { type: 'error', message: 'İndirme kesildi.' });
-            } else if (state === 'progressing') {
-                if (!item.isPaused()) {
-                    const percent = Math.floor((item.getReceivedBytes() / item.getTotalBytes()) * 100);
-                    mainWindow.webContents.send('update-status', { 
-                        type: 'progress', 
-                        percent: percent,
-                        bytesPerSecond: 0 
-                    });
-                }
-            }
-        });
-        item.once('done', (event, state) => {
-            if (state === 'completed') {
-                const filePath = item.getSavePath();
-                console.log('İndirme tamamlandı:', filePath);
-                mainWindow.webContents.send('update-status', { type: 'downloaded' });
-                
-                // Kapamadan önce kullanıcıya kısa bir saniye ver, sonra kurulumla birlikte zorla kapat
-                setTimeout(() => {
-                    shell.openPath(filePath).then(() => {
-                        app.quit();
-                    });
-                }, 1500);
-            } else {
-                console.log(`İndirme başarısız: ${state}`);
-                mainWindow.webContents.send('update-status', { type: 'error', message: 'İndirme başarısız oldu.' });
-            }
-        });
-    });
-
     // Menü çubuğunu gizle
     mainWindow.setMenuBarVisibility(false);
 
