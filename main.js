@@ -73,7 +73,7 @@ if (!gotTheLock) {
                 checkUpdateViaTags(window, true).then(result => {
                     if (result) updaterState = result;
                 });
-            }, 5000); // 5 saniye bekle ki arayüz tam otursun
+            }, 2000); // 2 saniye bekle ki arayüz tam otursun
         }
     }
 
