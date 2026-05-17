@@ -69,8 +69,29 @@ const Dashboard = {
         });
 
         document.getElementById('btnApplyCustom').onclick = async () => {
-            this.updateLabels();
-            await this.loadAll();
+            const from = document.getElementById('customFrom').value;
+            const to = document.getElementById('customTo').value;
+
+            if (!from || !to) {
+                App.showToast('Lütfen her iki tarihi de seçiniz.', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btnApplyCustom');
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = 'Yükleniyor...';
+
+            try {
+                this.updateLabels();
+                await this.loadAll();
+                App.showToast('Veriler yenilendi.', 'success');
+            } catch (err) {
+                App.showToast('Veri yüklenirken hata oluştu.', 'danger');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
         };
 
         this.updateLabels();
@@ -80,9 +101,10 @@ const Dashboard = {
         const labels = {
             daily: { v: 'Bugünkü Araç', c: 'Sıcak Nakit (Kasa)', e: 'Bugünkü Gider' },
             weekly: { v: 'Haftalık Araç', c: 'Haftalık Kasa', e: 'Haftalık Gider' },
-            monthly: { v: 'Aylık Araç', c: 'Aylık Kasa', e: 'Aylık Gider' }
+            monthly: { v: 'Aylık Araç', c: 'Aylık Kasa', e: 'Aylık Gider' },
+            custom: { v: 'Seçili Aralıktaki Araç', c: 'Seçili Aralıktaki Kasa', e: 'Seçili Aralıktaki Gider' }
         };
-        const active = labels[this.currentRange];
+        const active = labels[this.currentRange] || labels.monthly;
         document.getElementById('vehicleLabel').innerText = active.v;
         document.getElementById('cashLabel').innerText = active.c;
         document.getElementById('expenseLabel').innerText = active.e;
