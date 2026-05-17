@@ -44,7 +44,7 @@ router.get('/summary', (req, res) => {
             ORDER BY date DESC
         `).all(from, to) || [];
 
-        const commissionSetting = db.prepare('SELECT value FROM settings WHERE key = "pos_commission_rate"').get();
+        const commissionSetting = db.prepare("SELECT value FROM settings WHERE key = 'pos_commission_rate'").get();
         const rate = commissionSetting ? (parseFloat(commissionSetting.value) || 0) : 0;
         
         const totalCommission = (incomeResult.total_card || 0) * (rate / 100);
@@ -81,7 +81,7 @@ router.get('/export-excel', async (req, res) => {
         const incomeData = db.prepare('SELECT * FROM income WHERE date BETWEEN ? AND ? ORDER BY date').all(from, to);
         const expenseData = db.prepare('SELECT * FROM expense WHERE date BETWEEN ? AND ? ORDER BY date').all(from, to);
 
-        const commissionSetting = db.prepare('SELECT value FROM settings WHERE key = "pos_commission_rate"').get();
+        const commissionSetting = db.prepare("SELECT value FROM settings WHERE key = 'pos_commission_rate'").get();
         const rate = commissionSetting ? parseFloat(commissionSetting.value) : 0;
 
         const workbook = await exportToExcel(incomeData, expenseData, { posRate: rate });
