@@ -131,8 +131,9 @@ const Settings = {
     },
 
     async installUpdate() {
-        const status = document.getElementById('updateStatus');
-        status.innerText = 'Güncelleme başlatıldı, indirme bekleniyor...';
+        if (typeof App !== 'undefined' && App.showUpdateOverlay) {
+            App.showUpdateOverlay('GÜNCELLEME BAŞLATILIYOR', 'İndirme işlemi hazırlanıyor...');
+        }
         
         try {
             await App.fetchAPI('/update/install', { method: 'POST' });

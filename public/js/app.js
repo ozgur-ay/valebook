@@ -167,6 +167,16 @@ const App = {
         }
     },
 
+    showUpdateOverlay(title = 'SİSTEM GÜNCELLENİYOR', desc = 'VERİ PAKETLERİ SENKRONİZE EDİLİYOR...') {
+        this.setupUpdateOverlay();
+        const overlay = document.getElementById('globalUpdateOverlay');
+        if (overlay) {
+            overlay.classList.add('active');
+            document.getElementById('updateTitle').innerText = title;
+            document.getElementById('updateText').innerText = desc;
+        }
+    },
+
     listenForUpdates() {
         if (window.electronAPI && window.electronAPI.onUpdateStatus) {
             let lastLogPercent = -1;

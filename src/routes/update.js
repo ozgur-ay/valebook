@@ -58,11 +58,11 @@ router.get('/check', async (req, res) => {
 
 router.post('/install', async (req, res) => {
     try {
-        if (autoUpdater) {
-            // Since autoDownload is now TRUE in main.js, we just need to trigger a check.
-            // It will see the newer version, download it, and main.js will show the Restart popup.
-            autoUpdater.checkForUpdates().catch(e => console.error("Manual check error:", e));
-            return res.json({ success: true, log: "Manual check triggered (result in main process)." });
+        if (process.versions && process.versions.electron) {
+            // Electron ortamında asıl güncellemeyi tetikle
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('trigger-manual-check');
+            return res.json({ success: true });
         }
         res.status(400).json({ error: "Güncelleyici bulunamadı (Electron ortamı değil)." });
     } catch (error) {
