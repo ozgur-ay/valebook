@@ -33,6 +33,16 @@ app.use('/api/settings', require('./src/routes/settings'));
 app.use('/api/update', require('./src/routes/update'));
 app.use('/api/feedback', require('./src/routes/feedback'));
 
+// Kullanım Kılavuzu İndirme Rotası
+app.get('/api/download-guide', (req, res) => {
+    const filePath = path.join(__dirname, 'KULLANIM_KILAVUZU.txt');
+    if (fs.existsSync(filePath)) {
+        res.download(filePath, 'ValeBook_Kullanim_Kilavuzu.txt');
+    } else {
+        res.status(404).json({ error: 'Kılavuz dosyası bulunamadı.' });
+    }
+});
+
 // Küresel REST İşlem Hataları Yakalayıcısı
 app.use((err, req, res, next) => {
     logger.error(`Express Global Error: ${err.message}`, { url: req.url }, err);
