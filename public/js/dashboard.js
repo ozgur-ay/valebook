@@ -186,11 +186,45 @@ const Dashboard = {
             data: {
                 labels: labels,
                 datasets: [
-                    { label: 'Nakit (₺)', data: cashData, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.4 },
-                    { label: 'Kart (₺)', data: cardData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 }
+                    { 
+                        label: 'Nakit (₺)', 
+                        data: cashData, 
+                        borderColor: '#10b981', 
+                        backgroundColor: 'rgba(16, 185, 129, 0.05)', 
+                        fill: true, 
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 6,
+                        borderWidth: 3
+                    },
+                    { 
+                        label: 'Kart (₺)', 
+                        data: cardData, 
+                        borderColor: '#3b82f6', 
+                        backgroundColor: 'rgba(59, 130, 246, 0.05)', 
+                        fill: true, 
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 6,
+                        borderWidth: 3
+                    }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        align: 'end',
+                        labels: { boxWidth: 8, usePointStyle: true, pointStyle: 'circle', font: { size: 11, weight: '600' }, color: '#94a3b8' }
+                    }
+                },
+                scales: { 
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } }
+                } 
+            }
         });
     },
 
@@ -199,19 +233,31 @@ const Dashboard = {
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         if (window.expenseChart) window.expenseChart.destroy();
+
         window.expenseChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: data.map(i => i.category),
-                datasets: [{ data: data.map(i => i.total), backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'] }]
+                datasets: [{ 
+                    data: data.map(i => i.total), 
+                    backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'],
+                    borderWidth: 0,
+                    hoverOffset: 15
+                }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                cutout: '78%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 8, usePointStyle: true, padding: 20, font: { size: 11 }, color: '#94a3b8' }
+                    }
+                }
+            }
         });
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => Dashboard.init());
-
-
-// Dashboard başlat
 document.addEventListener('DOMContentLoaded', () => Dashboard.init());

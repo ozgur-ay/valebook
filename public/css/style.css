@@ -158,22 +158,21 @@ body {
  
 /* Stat Cards Specifics */
 .stat-card .label {
-    font-size: 0.8125rem;
+    font-size: 0.65rem;
     color: var(--text-gray);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
+    font-weight: 700;
     margin-bottom: 0.75rem;
     display: block;
+    opacity: 0.8;
 }
  
 .stat-card .value {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--text-white);
-    background: linear-gradient(to right, #fff, #94a3b8);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #f8fafc;
+    letter-spacing: -0.02em;
 }
  
 .stat-card.highlight .value {

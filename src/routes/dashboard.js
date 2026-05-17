@@ -11,61 +11,82 @@ const db = require('../database');
 router.get('/stats', (req, res) => {
     try {
         const { from, to, compareFrom, compareTo } = req.query;
+        console.log(`[Dashboard Stats] Requested Range: ${from} to ${to}`);
+        
         if (!from || !to) return res.status(400).json({ error: 'Date range required' });
 
         const getStats = (f, t) => {
+            // Transaction date bazlı gelirler
             const income = db.prepare(`
                 SELECT 
-                    SUM(vehicle_count) as total_vehicles,
-                    SUM(cash_amount) as total_cash,
-                    SUM(card_amount) as total_card,
-                    SUM(iban_amount) as total_iban,
-                    SUM(total_amount) as total_income
+                    COALESCE(SUM(vehicle_count), 0) as total_vehicles,
+                    COALESCE(SUM(cash_amount), 0) as total_cash,
+                    COALESCE(SUM(card_amount), 0) as total_card,
+                    COALESCE(SUM(iban_amount), 0) as total_iban,
+                    COALESCE(SUM(total_amount), 0) as total_income
                 FROM income 
                 WHERE date BETWEEN ? AND ? AND is_deleted = 0
-            `).get(f, t) || {};
+            `).get(f, t);
 
+            // Giderler
             const expense = db.prepare(`
-                SELECT SUM(amount) as total FROM expense 
+                SELECT COALESCE(SUM(amount), 0) as total FROM expense 
                 WHERE date BETWEEN ? AND ? AND is_deleted = 0
-            `).get(f, t) || {};
+            `).get(f, t);
 
-            // Harcanabilir (Sıcak Kasa): (Nakit + IBAN + Tahsil Edilmiş POS) - Giderler
-            const totalCashIncome = income.total_cash || 0;
-            const totalIbanIncome = income.total_iban || 0;
-            const totalPosCollected = db.prepare('SELECT SUM(pos_collected_amount) as total FROM income WHERE is_deleted = 0 AND pos_collected_date BETWEEN ? AND ?').get(f, t).total || 0;
-            const totalExpenses = expense.total || 0;
+            // Bu aralıkta bankadan tahsil edilen POS tutarları
+            // Not: pos_collected_date ISO string olduğu için date() fonksiyonuyla sadece gün kısmını alıyoruz
+            const posCollectedQueryResult = db.prepare(`
+                SELECT COALESCE(SUM(pos_collected_amount), 0) as total 
+                FROM income 
+                WHERE is_deleted = 0 
+                AND date(pos_collected_date) BETWEEN ? AND ?
+            `).get(f, t);
+            
+            const totalCashIn = income.total_cash;
+            const totalIbanIn = income.total_iban;
+            const totalPosCollectedIn = posCollectedQueryResult.total;
+            const totalExp = expense.total;
 
             return {
-                vehicle_count: income.total_vehicles || 0,
-                total_income: income.total_income || 0,
-                cash_total: (totalCashIncome + totalIbanIncome + totalPosCollected) - totalExpenses,
-                total_expense: totalExpenses
+                vehicle_count: income.total_vehicles,
+                total_income: income.total_income,
+                cash_total: (totalCashIn + totalIbanIn + totalPosCollectedIn) - totalExp,
+                total_expense: totalExp
             };
         };
 
         const current = getStats(from, to);
-        let comparison = null;
+        console.log(`[Dashboard Stats] Current Result:`, current);
+        
+        let comparison = { vehicle_count: 0, total_income: 0, cash_total: 0, total_expense: 0 };
 
         if (compareFrom && compareTo) {
             comparison = getStats(compareFrom, compareTo);
         }
 
-        // Bankada Bekleyen Mevcut Durum (Aralıktan Bağımsız, Anlık)
+        const pendingData = db.prepare(`
+            SELECT 
+                COALESCE(SUM(card_amount), 0) as pending_card,
+                COALESCE(SUM(pos_collected_amount), 0) as collected_part
+            FROM income 
+            WHERE is_deleted = 0 AND pos_status != 'collected'
+        `).get();
+
         const commissionSetting = db.prepare('SELECT value FROM settings WHERE key = "pos_commission_rate"').get();
         const rate = commissionSetting ? parseFloat(commissionSetting.value) : 0;
-        const pendingCardTotal = db.prepare("SELECT SUM(card_amount) as total FROM income WHERE is_deleted = 0 AND pos_status != 'collected'").get().total || 0;
-        const pendingCollectedPart = db.prepare("SELECT SUM(pos_collected_amount) as total FROM income WHERE is_deleted = 0 AND pos_status != 'collected'").get().total || 0;
-        const pendingNetVal = (pendingCardTotal * (1 - rate / 100)) - pendingCollectedPart;
+        
+        const pendingNetVal = (pendingData.pending_card * (1 - rate / 100)) - pendingData.collected_part;
 
         res.json({
             current,
             comparison,
             pending_pos: Math.max(0, pendingNetVal),
-            total_pending_commission: (pendingCardTotal * (rate / 100)),
+            total_pending_commission: (pendingData.pending_card * (rate / 100)),
             pos_rate: rate
         });
     } catch (error) {
+        console.error('[Dashboard Stats Error]:', error);
         res.status(500).json({ error: error.message });
     }
 });
