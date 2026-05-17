@@ -135,13 +135,59 @@ const App = {
                     <h2 id="updateTitle">Sistem Güncelleniyor</h2>
                     <p id="updateText">Yeni özellikler ve iyileştirmeler indiriliyor. Lütfen bekleyin...</p>
                     <div class="progress-container">
-                        <div class="progress-fill" id="updateProgressFill"></div>
-                    </div>
-                    <div class="progress-text" id="updateProgressText">0%</div>
+        if (document.getElementById('globalUpdateOverlay')) return;
+        const overlay = document.createElement('div');
+        overlay.id = 'globalUpdateOverlay';
+        overlay.className = 'update-overlay';
+        overlay.innerHTML = `
+            <div class="update-box">
+                <h2 id="updateTitle">SİSTEM GÜNCELLENİYOR</h2>
+                <div class="progress-text" id="updateProgressText">0%</div>
+                <div class="progress-container">
+                    <div class="progress-fill" id="updateProgressFill"></div>
                 </div>
+                <p id="updateText">LÜTFEN BEKLEYİNİZ...</p>
             </div>
         `;
-        document.body.insertAdjacentHTML('beforeend', overlayHtml);
+        document.body.appendChild(overlay);
+    },
+
+    closeFeedbackModal() {
+        const modal = document.getElementById('feedbackModal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => modal.remove(), 300);
+        }
+    },
+
+    async sendFeedback() {
+        const text = document.getElementById('feedbackText').value;
+        const btn = document.querySelector('#feedbackModal .btn-primary');
+        if (!text.trim()) {
+            this.showToast(LANG.errEmpty, 'warning');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = LANG.btnSending;
+
+        try {
+            await this.fetchAPI('/feedback', {
+                method: 'POST',
+                body: JSON.stringify({
+                    message: text,
+                    type: LANG.type,
+                    timestamp: new Date().toISOString(),
+                    version: document.getElementById('versionDisplay')?.innerText || 'Unknown'
+                })
+            });
+            this.showToast(LANG.successMsg);
+            this.closeFeedbackModal();
+        } catch (error) {
+            this.showToast(LANG.errServer, 'danger');
+            btn.disabled = false;
+            btn.innerText = LANG.btnSend;
+        }
     },
 
     listenForUpdates() {
@@ -152,6 +198,8 @@ const App = {
                 const text = document.getElementById('updateProgressText');
                 const title = document.getElementById('updateTitle');
                 const desc = document.getElementById('updateText');
+
+                if (!overlay || !fill || !text || !title || !desc) return;
 
                 if (status.type === 'available' || status.type === 'progress') {
                     overlay.classList.add('active');
