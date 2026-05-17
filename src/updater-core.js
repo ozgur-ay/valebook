@@ -32,14 +32,16 @@ async function checkUpdateViaTags(mainWindow, autoDownload = true) {
         const exeAsset = release.assets.find(a => a.name.endsWith('.exe'));
 
         if (isNewer && exeAsset) {
+            const versions = { current: currentVersion, latest: latestTag };
             mainWindow.webContents.send('update-status', { 
                 type: 'available', 
-                version: latestTag 
+                version: latestTag,
+                versions: versions
             });
 
             // ZERO-CLICK AUTO DOWNLOAD
             if (autoDownload) {
-                startDownload(mainWindow, exeAsset.browser_download_url);
+                startDownload(mainWindow, exeAsset.browser_download_url, versions);
             }
             
             return { type: 'available', version: latestTag };
@@ -52,7 +54,7 @@ async function checkUpdateViaTags(mainWindow, autoDownload = true) {
     }
 }
 
-function startDownload(mainWindow, downloadUrl) {
+function startDownload(mainWindow, downloadUrl, versions) {
     const https = require('https');
     const fs = require('fs');
     const path = require('path');
@@ -61,7 +63,7 @@ function startDownload(mainWindow, downloadUrl) {
     const tempPath = path.join(app.getPath('temp'), `valebook_update_setup.exe`);
     const file = fs.createWriteStream(tempPath);
     
-    mainWindow.webContents.send('update-status', { type: 'progress', percent: 1 });
+    mainWindow.webContents.send('update-status', { type: 'progress', percent: 1, versions });
 
     const handleDownload = (url) => {
         https.get(url, {
@@ -80,7 +82,7 @@ function startDownload(mainWindow, downloadUrl) {
                 receivedBytes += chunk.length;
                 if (totalBytes) {
                     const percent = Math.floor((receivedBytes / totalBytes) * 100);
-                    mainWindow.webContents.send('update-status', { type: 'progress', percent: percent });
+                    mainWindow.webContents.send('update-status', { type: 'progress', percent: percent, versions });
                 }
             });
             

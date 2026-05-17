@@ -159,7 +159,9 @@ const App = {
                     fill.style.width = percent + '%';
                     text.innerText = percent + '%';
                     title.innerText = 'SİSTEM GÜNCELLENİYOR';
-                    desc.innerText = 'DOSYALAR İNDİRİLİLİYOR, LÜTFEN BEKLEYİNİZ...';
+                    
+                    const vInfo = status.versions ? `v${status.versions.current} → v${status.versions.latest}` : '';
+                    desc.innerText = `${vInfo} | DOSYALAR İNDİRİLİYOR, LÜTFEN BEKLEYİNİZ...`;
                 } else if (status.type === 'downloaded') {
                     overlay.classList.add('active');
                     fill.style.width = '100%';
