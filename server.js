@@ -10,9 +10,19 @@ const db = require('./src/database');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const logger = require('./src/utils/logger.js');
+
 // --- Middleware ---
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Küresel Bütün İstekleri Loglama Sistemi
+app.use((req, res, next) => {
+    if (req.url.startsWith('/api')) {
+        logger.info(`HTTP Request`, { method: req.method, url: req.url, query: req.query, body: req.body });
+    }
+    next();
+});
 
 // --- API Rotaları ---
 app.use('/api/income', require('./src/routes/income'));
@@ -22,6 +32,12 @@ app.use('/api/reports', require('./src/routes/reports'));
 app.use('/api/settings', require('./src/routes/settings'));
 app.use('/api/update', require('./src/routes/update'));
 app.use('/api/feedback', require('./src/routes/feedback'));
+
+// Küresel REST İşlem Hataları Yakalayıcısı
+app.use((err, req, res, next) => {
+    logger.error(`Express Global Error: ${err.message}`, { url: req.url }, err);
+    res.status(500).json({ error: err.message });
+});
 
 // --- Ana Sayfa ---
 app.get('*', (req, res) => {

@@ -3,18 +3,20 @@ const path = require('path');
 const fs = require('fs');
 const { autoUpdater } = require('electron-updater');
 
+const logger = require('./src/utils/logger.js');
+
 // Global Error Logging - Save errors before app crashes
 process.on('uncaughtException', (err) => {
-    const errorLogPath = path.join(__dirname, 'valebook-error.log');
-    const logMessage = `\n[${new Date().toISOString()}] UNCAUGHT EXCEPTION: ${err.message}\n${err.stack}`;
-    fs.appendFileSync(errorLogPath, logMessage);
+    logger.error('CRITICAL UNCAUGHT EXCEPTION', {}, err);
     console.error('Critical Error (Logged):', err);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    const errorLogPath = path.join(__dirname, 'valebook-error.log');
-    const logMessage = `\n[${new Date().toISOString()}] UNHANDLED REJECTION: ${reason}\n`;
-    fs.appendFileSync(errorLogPath, logMessage);
+    if (reason instanceof Error) {
+        logger.error('UNHANDLED PROMISE REJECTION', {}, reason);
+    } else {
+        logger.error('UNHANDLED PROMISE REJECTION', { reason });
+    }
     console.error('Unhandled Promise Rejection (Logged):', reason);
 });
 

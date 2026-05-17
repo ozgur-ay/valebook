@@ -67,7 +67,7 @@ router.get('/summary', (req, res) => {
             pos_rate: rate
         });
     } catch (error) {
-        require('fs').appendFileSync(require('path').join(__dirname, '../../valebook-error.log'), `[${new Date().toISOString()}] REPORTS GET ERROR: ${error.stack}\n`);
+        require('../utils/logger.js').error('REPORTS GET ERROR', {}, error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -92,7 +92,7 @@ router.get('/export-excel', async (req, res) => {
         await workbook.xlsx.write(res);
         res.end();
     } catch (error) {
-        require('fs').appendFileSync(require('path').join(__dirname, '../../valebook-error.log'), `[${new Date().toISOString()}] EXCEL EXPORT ERROR: ${error.stack}\n`);
+        require('../utils/logger.js').error('EXCEL EXPORT ERROR', {}, error);
         res.status(500).json({ error: error.message });
     }
 });

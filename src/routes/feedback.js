@@ -20,13 +20,16 @@ router.post('/', async (req, res) => {
 
         const text = `🚨 *ValeBook Feedback* 🚨\n\n*Type:* ${type || 'General'}\n*User:* ${user || 'Unknown'}\n*Message:*\n${message}`;
 
-        const errorLogPath = path.join(__dirname, '../../valebook-error.log');
-        let logContent = `--- ValeBook Diagnostic Log ---\n Tarih: ${new Date().toISOString()}\n İşletim Sistemi: ${process.platform} ${process.arch}\n Node Sürümü: ${process.version}\n Açık Kalma Süresi: ${process.uptime()} sn\n\n`;
+        const { LOG_FILE, OLD_LOG_FILE } = require('../utils/logger.js');
         
-        if (fs.existsSync(errorLogPath)) {
-            logContent += `--- CRITICAL ERRORS ---\n${fs.readFileSync(errorLogPath, 'utf8')}`;
-        } else {
-            logContent += `--- CRITICAL ERRORS ---\nBu oturumda tespit edilen kritik bir hata (crash) bulunmamaktadır.\n`;
+        let logContent = `--- ValeBook Diagnostic Log ---\n Tarih: ${new Date().toISOString()}\n İşletim Sistemi: ${process.platform} ${process.arch}\n Node Sürümü: ${process.version}\n Açık Kalma Süresi: ${process.uptime()} sn\n\n`;
+        logContent += `--- HISTORICAL LOGS ---\n`;
+        
+        if (fs.existsSync(OLD_LOG_FILE)) {
+            logContent += fs.readFileSync(OLD_LOG_FILE, 'utf8');
+        }
+        if (fs.existsSync(LOG_FILE)) {
+            logContent += fs.readFileSync(LOG_FILE, 'utf8');
         }
 
         let telegramPromises = [];
