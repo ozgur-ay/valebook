@@ -12,6 +12,7 @@ router.get('/', (req, res) => {
         const { from, to } = req.query;
         let baseQuery = `
             SELECT 
+                date,
                 SUM(vehicle_count) as vehicle_count,
                 SUM(cash_amount) as cash_amount,
                 SUM(card_amount) as card_amount,
