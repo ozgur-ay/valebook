@@ -42,39 +42,43 @@ const Dashboard = {
     getRangeDates(range) {
         const now = new Date();
         const today = now.toISOString().split('T')[0];
-        let from, to = today;
+        let from = today;
+        let to = today;
         let cFrom, cTo;
 
         if (range === 'daily') {
             from = today;
-            const yesterday = new Date(now);
+            const yesterday = new Date();
             yesterday.setDate(now.getDate() - 1);
             cFrom = cTo = yesterday.toISOString().split('T')[0];
         } else if (range === 'weekly') {
-            // Pazartesi başlangıç
-            const day = now.getDay(); // 0 (Paz) - 6 (Cmt)
+            const day = now.getDay();
             const diff = now.getDate() - (day === 0 ? 6 : day - 1);
-            const monday = new Date(now.setDate(diff));
+            const monday = new Date(now.getFullYear(), now.getMonth(), diff);
             from = monday.toISOString().split('T')[0];
             
-            // Karşılaştırma: Geçen haftanın aynı günleri
             const lastMon = new Date(monday);
             lastMon.setDate(monday.getDate() - 7);
-            const lastSameDay = new Date(new Date().setDate(new Date().getDate() - 7));
+            const lastSameDay = new Date();
+            lastSameDay.setDate(now.getDate() - 7);
             cFrom = lastMon.toISOString().split('T')[0];
             cTo = lastSameDay.toISOString().split('T')[0];
         } else if (range === 'monthly') {
             from = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
             
-            // Karşılaştırma: Geçen ayın 1'inden geçen ayın aynı gününe
-            const lastMonth = new Date(new Date().setMonth(new Date().getMonth() - 1));
-            cFrom = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}-01`;
-            const lastMonthSameDay = new Date(new Date().setMonth(new Date().getMonth() - 1));
+            const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            cFrom = lastMonth.toISOString().split('T')[0];
+            
+            const lastMonthSameDay = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
             cTo = lastMonthSameDay.toISOString().split('T')[0];
         }
 
-        // Seçili aralık etiketini güncelle
-        const fmt = (d) => new Date(d).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+        const fmt = (d) => {
+            if (!d) return '...';
+            const dateObj = new Date(d);
+            if (isNaN(dateObj.getTime())) return d;
+            return dateObj.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+        };
         document.getElementById('selectedRangeLabel').innerText = `${fmt(from)} - ${fmt(to)} Aralığı Gösteriliyor`;
 
         return { from, to, compareFrom: cFrom, compareTo: cTo };

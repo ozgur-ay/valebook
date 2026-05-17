@@ -20,27 +20,25 @@ router.get('/stats', (req, res) => {
             const income = db.prepare(`
                 SELECT 
                     COALESCE(SUM(vehicle_count), 0) as total_vehicles,
+                    COALESCE(SUM(total_amount), 0) as total_income,
                     COALESCE(SUM(cash_amount), 0) as total_cash,
-                    COALESCE(SUM(card_amount), 0) as total_card,
-                    COALESCE(SUM(iban_amount), 0) as total_iban,
-                    COALESCE(SUM(total_amount), 0) as total_income
+                    COALESCE(SUM(iban_amount), 0) as total_iban
                 FROM income 
-                WHERE date BETWEEN ? AND ? AND is_deleted = 0
+                WHERE date(date) BETWEEN date(?) AND date(?) AND is_deleted = 0
             `).get(f, t);
 
             // Giderler
             const expense = db.prepare(`
                 SELECT COALESCE(SUM(amount), 0) as total FROM expense 
-                WHERE date BETWEEN ? AND ? AND is_deleted = 0
+                WHERE date(date) BETWEEN date(?) AND date(?) AND is_deleted = 0
             `).get(f, t);
 
             // Bu aralıkta bankadan tahsil edilen POS tutarları
-            // Not: pos_collected_date ISO string olduğu için date() fonksiyonuyla sadece gün kısmını alıyoruz
             const posCollectedQueryResult = db.prepare(`
                 SELECT COALESCE(SUM(pos_collected_amount), 0) as total 
                 FROM income 
                 WHERE is_deleted = 0 
-                AND date(pos_collected_date) BETWEEN ? AND ?
+                AND date(pos_collected_date) BETWEEN date(?) AND date(?)
             `).get(f, t);
             
             const totalCashIn = income.total_cash;
@@ -57,7 +55,9 @@ router.get('/stats', (req, res) => {
         };
 
         const current = getStats(from, to);
-        console.log(`[Dashboard Stats] Current Result:`, current);
+        console.log(`[Dashboard Stats Debug] Range: ${from} -> ${to}`);
+        console.table(current);
+
         
         let comparison = { vehicle_count: 0, total_income: 0, cash_total: 0, total_expense: 0 };
 
@@ -204,7 +204,7 @@ router.get('/charts', (req, res) => {
                 SUM(cash_amount) as cash, 
                 SUM(card_amount) as card 
             FROM income 
-            WHERE date BETWEEN ? AND ? AND is_deleted = 0
+            WHERE date(date) BETWEEN date(?) AND date(?) AND is_deleted = 0
             GROUP BY date
         `).all(statsFrom, statsTo);
 
@@ -224,7 +224,7 @@ router.get('/charts', (req, res) => {
                 category, 
                 SUM(amount) as total 
             FROM expense 
-            WHERE date BETWEEN ? AND ? AND is_deleted = 0
+            WHERE date(date) BETWEEN date(?) AND date(?) AND is_deleted = 0
             GROUP BY category
             ORDER BY total DESC
         `).all(statsFrom, statsTo);
