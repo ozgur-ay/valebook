@@ -153,24 +153,19 @@ const App = {
                 const title = document.getElementById('updateTitle');
                 const desc = document.getElementById('updateText');
 
-                if (status.type === 'checking') {
-                    // Sessiz kontrol
                 } else if (status.type === 'available' || status.type === 'progress') {
                     overlay.classList.add('active');
                     const percent = status.percent ? Math.floor(status.percent) : 0;
                     fill.style.width = percent + '%';
                     text.innerText = percent + '%';
-                    title.innerText = 'Güncelleme Hazırlanıyor';
-                    desc.innerText = `Yeni bir sürüm (v${status.version || ''}) bulundu. Güncelleme otomatik olarak başlatıldı, lütfen bekleyiniz...`;
-                    
-                    if (status.type === 'progress') {
-                        title.innerText = 'Güncelleme İndiriliyor';
-                    }
+                    title.innerText = 'SİSTEM GÜNCELLENİYOR';
+                    desc.innerText = 'DOSYALAR İNDİRİLİYOR, LÜTFEN BEKLEYİNİZ...';
                 } else if (status.type === 'downloaded') {
                     overlay.classList.add('active');
                     fill.style.width = '100%';
-                    text.innerText = 'Tamamlandı';
-                    title.innerText = 'Yükleme Hazır';
+                    text.innerText = '100%';
+                    title.innerText = 'YÜKLEME HAZIR';
+                    desc.innerText = 'UYGULAMA YENİDEN BAŞLATILIYOR...';
                     desc.innerText = 'Güncelleme başarıyla indirildi. Uygulama şimdi yeniden başlatılacak...';
                 } else if (status.type === 'error') {
                     // Hatayı sadece toast olarak göster, overlay'i kapat

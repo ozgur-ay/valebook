@@ -11,8 +11,12 @@ async function checkUpdateViaTags(mainWindow, autoDownload = true) {
         mainWindow.webContents.send('update-status', { type: 'checking' });
         
         // GitHub API call with User-Agent
+        console.log('[Updater] Fetching latest release...');
         const response = await fetch('https://api.github.com/repos/ozgur-ay/valebook/releases/latest', {
-            headers: { 'User-Agent': 'ValeBook-Updater' }
+            headers: { 
+                'User-Agent': 'ValeBook-Updater',
+                'Accept': 'application/vnd.github.v3+json'
+            }
         });
         
         if (!response.ok) {

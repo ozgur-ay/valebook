@@ -617,19 +617,18 @@ input[type="date"] {
     border-top: 1px solid var(--border-glass);
 }
 
-/* Global Update Overlay */
+/* Global Update Overlay - Tam Ekran İmmersif */
 .update-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(8px);
-    z-index: 99999;
+    background: #000; /* Tam siyah arka plan */
+    z-index: 999999;
     display: flex;
     align-items: center;
     justify-content: center;
     visibility: hidden;
     opacity: 0;
-    transition: all 0.3s ease;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .update-overlay.active {
@@ -638,47 +637,52 @@ input[type="date"] {
 }
 
 .update-box {
-    background: var(--bg-dark);
-    border: 1px solid var(--primary);
-    border-radius: 1.5rem;
-    padding: 2.5rem;
-    width: 90%;
-    max-width: 450px;
     text-align: center;
-    box-shadow: 0 0 50px rgba(59, 130, 246, 0.3);
+    width: 100%;
+    max-width: 800px;
 }
 
 .update-box h2 {
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
-    color: var(--text-white);
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 2rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
 }
 
 .update-box p {
     color: var(--text-gray);
-    margin-bottom: 2rem;
-    font-size: 0.9375rem;
+    font-size: 1.25rem;
+    margin-bottom: 4rem;
 }
 
 .progress-container {
     background: rgba(255, 255, 255, 0.05);
-    height: 12px;
-    border-radius: 6px;
+    height: 4px; /* İnce ve modern bir çizgi */
+    border-radius: 2px;
     overflow: hidden;
-    margin-bottom: 1rem;
+    margin-bottom: 3rem;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--primary), var(--success));
+    background: var(--primary);
     width: 0%;
+    box-shadow: 0 0 30px var(--primary-glow);
     transition: width 0.3s ease;
 }
 
 .progress-text {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--primary);
+    font-size: 8rem; /* DEVASA YÜZDE GÖSTERİMİ */
+    font-weight: 900;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.05em;
+    line-height: 1;
 }
 
 /* --- Segmented Control --- */
