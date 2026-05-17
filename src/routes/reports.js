@@ -13,7 +13,7 @@ router.get('/summary', (req, res) => {
         const { from, to } = req.query;
         if (!from || !to) return res.status(400).json({ error: 'Date range required' });
 
-        const income = db.prepare(`
+        const incomeResult = db.prepare(`
             SELECT 
                 SUM(vehicle_count) as total_vehicles,
                 SUM(total_amount) as total_income,
@@ -21,7 +21,7 @@ router.get('/summary', (req, res) => {
                 SUM(card_amount) as total_card
             FROM income
             WHERE date BETWEEN ? AND ?
-        `).get(from, to);
+        `).get(from, to) || {};
 
         const expense = db.prepare(`
             SELECT 
@@ -30,33 +30,33 @@ router.get('/summary', (req, res) => {
             FROM expense
             WHERE date BETWEEN ? AND ?
             GROUP BY category
-        `).all(from, to);
+        `).all(from, to) || [];
 
         const rawExpenses = db.prepare(`
             SELECT * FROM expense
             WHERE date BETWEEN ? AND ? AND is_deleted = 0
             ORDER BY date DESC
-        `).all(from, to);
+        `).all(from, to) || [];
 
         const rawIncome = db.prepare(`
             SELECT * FROM income
             WHERE date BETWEEN ? AND ? AND is_deleted = 0
             ORDER BY date DESC
-        `).all(from, to);
+        `).all(from, to) || [];
 
         const commissionSetting = db.prepare('SELECT value FROM settings WHERE key = "pos_commission_rate"').get();
-        const rate = commissionSetting ? parseFloat(commissionSetting.value) : 0;
+        const rate = commissionSetting ? (parseFloat(commissionSetting.value) || 0) : 0;
         
-        const totalCommission = (income.total_card || 0) * (rate / 100);
-        const totalExpense = expense.reduce((sum, item) => sum + item.total_amount, 0);
-        const netProfitAfterCommission = (income.total_income || 0) - totalExpense - totalCommission;
+        const totalCommission = (incomeResult.total_card || 0) * (rate / 100);
+        const totalExpense = expense.reduce((sum, item) => sum + (item.total_amount || 0), 0);
+        const netProfitAfterCommission = (incomeResult.total_income || 0) - totalExpense - totalCommission;
 
         res.json({
             summary: {
-                total_vehicles: income.total_vehicles || 0,
-                total_income: income.total_income || 0,
-                total_cash: income.total_cash || 0,
-                total_card: income.total_card || 0,
+                total_vehicles: incomeResult.total_vehicles || 0,
+                total_income: incomeResult.total_income || 0,
+                total_cash: incomeResult.total_cash || 0,
+                total_card: incomeResult.total_card || 0,
                 total_commission: totalCommission,
                 total_expense: totalExpense,
                 net_profit: netProfitAfterCommission
