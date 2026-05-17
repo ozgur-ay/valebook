@@ -1,8 +1,17 @@
 const fs = require('fs');
 const path = require('path');
 
-const LOG_FILE = path.join(__dirname, '../../valebook-app.log');
-const OLD_LOG_FILE = path.join(__dirname, '../../valebook-app.old.log');
+let LOG_FILE, OLD_LOG_FILE;
+try {
+    const { app } = require('electron');
+    const userData = app.getPath('userData');
+    LOG_FILE = path.join(userData, 'valebook-app.log');
+    OLD_LOG_FILE = path.join(userData, 'valebook-app.old.log');
+} catch (error) {
+    LOG_FILE = path.join(__dirname, '../../valebook-app.log');
+    OLD_LOG_FILE = path.join(__dirname, '../../valebook-app.old.log');
+}
+
 const MAX_LOG_SIZE = 2 * 1024 * 1024; // 2MB Kapasite Limiti
 
 let currentSize = 0;

@@ -82,7 +82,7 @@ const Reports = {
             });
 
         } catch (error) {
-            alert('Rapor yüklenirken hata oluştu.');
+            alert('Detaylı Rapor Hatası: ' + error.message);
         }
     },
 

@@ -76,9 +76,9 @@ async function checkUpdateViaTags(mainWindow, showDialog = false) {
                                     file.close();
                                     mainWindow.webContents.send('update-status', { type: 'downloaded' });
                                     setTimeout(() => {
-                                        shell.openPath(tempPath).then(() => {
-                                            app.quit();
-                                        });
+                                        const { spawn } = require('child_process');
+                                        spawn(tempPath, [], { detached: true, stdio: 'ignore' }).unref();
+                                        app.quit();
                                     }, 1500);
                                 });
                             }).on('error', (err) => {
