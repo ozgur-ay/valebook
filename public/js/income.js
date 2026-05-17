@@ -154,23 +154,100 @@ const Income = {
             const tbody = document.querySelector('#incomeTable tbody');
             tbody.innerHTML = '';
 
-            history.forEach(item => {
+            history.forEach((item, index) => {
                 const tr = document.createElement('tr');
+                tr.className = 'expandable-row';
+                tr.dataset.index = index;
                 tr.innerHTML = `
-                    <td>${new Date(item.date).toLocaleDateString('tr-TR')}</td>
+                    <td>
+                        <span class="toggle-icon">▶</span>
+                        ${new Date(item.date).toLocaleDateString('tr-TR')}
+                    </td>
                     <td>${item.vehicle_count}</td>
                     <td>${App.formatCurrency(item.cash_amount)}</td>
                     <td>${App.formatCurrency(item.card_amount)}</td>
                     <td>${App.formatCurrency(item.total_amount)}</td>
-                    <td>${item.note || '-'}</td>
-                    <td>
-                        <button class="btn-sm btn-danger" onclick="Income.deleteItem(${item.id})">Sil</button>
-                    </td>
+                    <td><small style="color:var(--text-gray)">Detay için tıkla</small></td>
                 `;
+                
+                tr.addEventListener('click', () => this.toggleDetails(tr, item));
                 tbody.appendChild(tr);
+
+                // Gizli detay satırı
+                const detailTr = document.createElement('tr');
+                detailTr.className = 'details-row';
+                detailTr.id = `details-${index}`;
+                detailTr.style.display = 'none';
+                detailTr.innerHTML = `<td colspan="6" class="details-container"></td>`;
+                tbody.appendChild(detailTr);
             });
         } catch (error) {
             console.error('History load error:', error);
+        }
+    },
+
+    toggleDetails(row, data) {
+        const index = row.dataset.index;
+        const detailRow = document.getElementById(`details-${index}`);
+        const isActive = row.classList.contains('active');
+
+        // Diğerlerini kapat
+        document.querySelectorAll('.expandable-row').forEach(r => r.classList.remove('active'));
+        document.querySelectorAll('.details-row').forEach(r => r.style.display = 'none');
+
+        if (!isActive) {
+            row.classList.add('active');
+            detailRow.style.display = 'table-row';
+            
+            const container = detailRow.querySelector('.details-container');
+            const items = data.details ? data.details.split(';;;') : [];
+
+            let detailHtml = `
+                <div class="details-content">
+                    <table class="details-table">
+                        <thead>
+                            <tr>
+                                <th>Araç</th>
+                                <th>Birim</th>
+                                <th>Ödeme</th>
+                                <th>Nakit</th>
+                                <th>Kart</th>
+                                <th>Toplam</th>
+                                <th>Not</th>
+                                <th>Sil</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            items.forEach(itemStr => {
+                const [id, unitFee, count, total, method, note] = itemStr.split(':::');
+                const cash = method === 'cash' ? total : (method === 'mixed' ? (parseFloat(total) - (parseFloat(total) % 1)) : 0); // Simplified for now
+                // Purely visual mapping for detail rows:
+                const isCash = method === 'cash';
+                const isCard = method === 'credit_card';
+                const methodText = isCash ? 'Nakit' : (isCard ? 'Kart' : 'Karışık');
+
+                detailHtml += `
+                    <tr>
+                        <td>${count} Araç</td>
+                        <td>${App.formatCurrency(unitFee)}</td>
+                        <td><small>${methodText}</small></td>
+                        <td>${App.formatCurrency(isCash ? total : 0)}</td>
+                        <td>${App.formatCurrency(isCard ? total : 0)}</td>
+                        <td class="text-success">${App.formatCurrency(total)}</td>
+                        <td style="font-size:0.8rem; color:var(--text-gray)">${note || '-'}</td>
+                        <td><button class="btn btn-sm" style="color:var(--danger); background:transparent;" onclick="Income.deleteItem(${id}); event.stopPropagation();">🗑️</button></td>
+                    </tr>
+                `;
+            });
+
+            detailHtml += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            container.innerHTML = detailHtml;
         }
     },
 

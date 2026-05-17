@@ -12,13 +12,15 @@ router.get('/', (req, res) => {
         const { from, to } = req.query;
         let baseQuery = `
             SELECT 
-                id,
                 date,
-                vehicle_count,
-                cash_amount,
-                card_amount,
-                total_amount,
-                note
+                SUM(vehicle_count) as vehicle_count,
+                SUM(cash_amount) as cash_amount,
+                SUM(card_amount) as card_amount,
+                SUM(total_amount) as total_amount,
+                GROUP_CONCAT(
+                    id || ':::' || unit_fee || ':::' || vehicle_count || ':::' || total_amount || ':::' || payment_method || ':::' || IFNULL(note, ''),
+                    ';;;'
+                ) as details
             FROM income 
             WHERE is_deleted = 0
         `;
@@ -29,7 +31,7 @@ router.get('/', (req, res) => {
             params.push(from, to);
         }
 
-        baseQuery += ' ORDER BY date DESC, created_at DESC LIMIT 50';
+        baseQuery += ' GROUP BY date ORDER BY date DESC LIMIT 100';
         const rows = db.prepare(baseQuery).all(...params);
         res.json(rows);
     } catch (error) {
