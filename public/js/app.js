@@ -168,9 +168,9 @@ const App = {
     },
 
     listenForUpdates() {
-        if (window.electron && window.electron.onUpdateStatus) {
+        if (window.electronAPI && window.electronAPI.onUpdateStatus) {
             let lastLogPercent = -1;
-            window.electron.onUpdateStatus((status) => {
+            window.electronAPI.onUpdateStatus((status) => {
                 const overlay = document.getElementById('globalUpdateOverlay');
                 const ring = document.getElementById('quantumProgressCircle');
                 const text = document.getElementById('updateProgressText');
