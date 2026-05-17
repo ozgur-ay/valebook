@@ -11,21 +11,25 @@ async function checkUpdateViaTags(mainWindow, showDialog = false) {
     try {
         mainWindow.webContents.send('update-status', { type: 'checking' });
         
-        const response = await fetch('https://api.github.com/repos/ozgur-ay/valebook/tags');
-        const tags = await response.json();
+        // Tags yerine doğrudan Releases/Latest endpointini kullanıyoruz (Sadece asset olanları görür)
+        const response = await fetch('https://api.github.com/repos/ozgur-ay/valebook/releases/latest');
         
-        if (!Array.isArray(tags) || tags.length === 0) {
-            const noTags = { type: 'not-available' };
-            mainWindow.webContents.send('update-status', noTags);
-            return noTags;
+        if (!response.ok) {
+            const noRel = { type: 'not-available' };
+            mainWindow.webContents.send('update-status', noRel);
+            return noRel;
         }
 
-        const latestTag = tags[0].name.replace('v', '');
+        const release = await response.json();
+        const latestTag = release.tag_name.replace('v', '');
         const currentVersion = pkg.version;
 
         const isNewer = isVersionNewer(latestTag, currentVersion);
 
-        if (isNewer) {
+        // Asset kontrolü: Gerçekten bir .exe var mı?
+        const exeAsset = release.assets.find(a => a.name.endsWith('.exe'));
+
+        if (isNewer && exeAsset) {
             mainWindow.webContents.send('update-status', { 
                 type: 'available', 
                 version: latestTag 
@@ -40,20 +44,20 @@ async function checkUpdateViaTags(mainWindow, showDialog = false) {
                     buttons: ['Evet, Şimdi İndir ve Kur', 'Daha Sonra']
                 }).then((result) => {
                     if (result.response === 0) {
-                        const downloadUrl = `https://github.com/ozgur-ay/valebook/releases/download/v${latestTag}/ValeBook-Setup-${latestTag}.exe`;
+                        const downloadUrl = exeAsset.browser_download_url;
                         
-                        // İndirmeyi webContents yerine Native Node.js Sockets ile yapıyoruz (SmartScreen MotW Atlatması)
                         const https = require('https');
                         const fs = require('fs');
                         const path = require('path');
-                        const { app, shell } = require('electron');
+                        const { app } = require('electron');
                         
-                        const tempPath = path.join(app.getPath('temp'), `valebook_update_silent.exe`);
+                        const tempPath = path.join(app.getPath('temp'), `valebook_update_setup.exe`);
                         const file = fs.createWriteStream(tempPath);
                         
                         const handleDownload = (url) => {
-                            https.get(url, (response) => {
-                                // GitHub Redirect Handle
+                            https.get(url, {
+                                headers: { 'User-Agent': 'ValeBook' }
+                            }, (response) => {
                                 if (response.statusCode === 301 || response.statusCode === 302) {
                                     handleDownload(response.headers.location);
                                     return;
@@ -66,7 +70,7 @@ async function checkUpdateViaTags(mainWindow, showDialog = false) {
                                     receivedBytes += chunk.length;
                                     if (totalBytes) {
                                         const percent = Math.floor((receivedBytes / totalBytes) * 100);
-                                        mainWindow.webContents.send('update-status', { type: 'progress', percent: percent, bytesPerSecond: 0 });
+                                        mainWindow.webContents.send('update-status', { type: 'progress', percent: percent });
                                     }
                                 });
                                 
@@ -77,18 +81,17 @@ async function checkUpdateViaTags(mainWindow, showDialog = false) {
                                     mainWindow.webContents.send('update-status', { type: 'downloaded' });
                                     setTimeout(() => {
                                         const { spawn } = require('child_process');
-                                        // shell: true ve windowsHide: true ile SmartScreen'in 'shell' üzerinden yakalamasını zorlaştırıyoruz
                                         spawn(tempPath, [], { 
                                             detached: true, 
                                             stdio: 'ignore',
-                                            shell: false // Doğrudan dosya yoluyla çalıştırmak bazen daha sessizdir
+                                            shell: false 
                                         }).unref();
                                         app.quit();
                                     }, 2000);
                                 });
                             }).on('error', (err) => {
                                 fs.unlink(tempPath, () => {});
-                                mainWindow.webContents.send('update-status', { type: 'error', message: 'İndirme uç noktası hatası: ' + err.message });
+                                mainWindow.webContents.send('update-status', { type: 'error', message: 'İndirme hatası: ' + err.message });
                             });
                         };
                         
@@ -103,11 +106,8 @@ async function checkUpdateViaTags(mainWindow, showDialog = false) {
             return upToDate;
         }
     } catch (error) {
-        console.error('Tag based update check failed:', error);
-        const errorState = { 
-            type: 'error', 
-            message: 'Güncelleme kontrolü başarısız oldu (GitHub API).' 
-        };
+        console.error('Release based update check failed:', error);
+        const errorState = { type: 'error', message: 'Güncelleme kontrolü başarısız oldu.' };
         mainWindow.webContents.send('update-status', errorState);
         return errorState;
     }
