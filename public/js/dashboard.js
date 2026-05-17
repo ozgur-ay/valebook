@@ -13,18 +13,38 @@ const Dashboard = {
             const data = await App.fetchAPI(url);
             console.log('[Dashboard Summary]:', data);
 
-            // 1. Stats (Gelişmiş kartlar)
+            if (!data || !data.stats) throw new Error('Invalid data format');
+
+            // 1. Stats
             this.renderStats(data.stats, data.comparison, data.pending_pos, data.total_pending_commission);
 
-            // 2. Charts (Grafikler)
-            this.renderIncomeChart(data.charts.weeklyIncome);
-            this.renderExpenseChart(data.charts.categoryExpenses);
+            // 2. Charts
+            if (data.charts) {
+                this.renderIncomeChart(data.charts.weeklyIncome || []);
+                this.renderExpenseChart(data.charts.categoryExpenses || []);
+            }
 
-            // 3. Son İşlemler
-            this.renderRecentActivity(data.recent);
+            // 3. Transactions
+            this.renderRecentActivity(data.recent || []);
+
+            // Hide error if any
+            const errDiv = document.getElementById('dashboardError');
+            if (errDiv) errDiv.style.display = 'none';
 
         } catch (error) {
             console.error('Dashboard Load Error:', error);
+            const container = document.querySelector('.dashboard-overview');
+            if (container) {
+                let errDiv = document.getElementById('dashboardError');
+                if (!errDiv) {
+                    errDiv = document.createElement('div');
+                    errDiv.id = 'dashboardError';
+                    errDiv.style = 'background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 1rem; color: #ef4444; margin-bottom: 2rem; border-radius: 4px;';
+                    container.prepend(errDiv);
+                }
+                errDiv.innerHTML = `<strong>Sistem Hatası:</strong> Dashboard verileri yüklenemedi. <br><small>${error.message}</small>`;
+                errDiv.style.display = 'block';
+            }
         }
     },
 
@@ -101,6 +121,7 @@ const Dashboard = {
 
     renderStats(cur, prev, pending_pos, total_pending_commission) {
         try {
+            if (!cur) cur = { vehicle_count: 0, total_income: 0, cash_total: 0, total_expense: 0 };
             if (!prev) prev = { vehicle_count: 0, total_income: 0, cash_total: 0, total_expense: 0 };
 
             // Değerleri bas

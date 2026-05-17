@@ -47,13 +47,13 @@ router.get('/summary', (req, res) => {
         const rawIncome = db.prepare(`
             SELECT * FROM income 
             WHERE (is_deleted = 0 OR is_deleted IS NULL)
-            AND date(date) BETWEEN date(?) AND date(?)
+            AND date >= ? AND date <= ?
         `).all(from, to);
 
         const rawExpense = db.prepare(`
             SELECT * FROM expense 
             WHERE (is_deleted = 0 OR is_deleted IS NULL)
-            AND date(date) BETWEEN date(?) AND date(?)
+            AND date >= ? AND date <= ?
         `).all(from, to);
 
         // Karşılaştırma verisi (Bir önceki dönemi kabaca 1 ay öncesi olarak alalım)
@@ -72,13 +72,13 @@ router.get('/summary', (req, res) => {
         const prevIncome = db.prepare(`
             SELECT * FROM income 
             WHERE (is_deleted = 0 OR is_deleted IS NULL)
-            AND date(date) BETWEEN date(?) AND date(?)
+            AND date >= ? AND date <= ?
         `).all(psStr, peStr);
 
         const prevExpense = db.prepare(`
             SELECT * FROM expense 
             WHERE (is_deleted = 0 OR is_deleted IS NULL)
-            AND date(date) BETWEEN date(?) AND date(?)
+            AND date >= ? AND date <= ?
         `).all(psStr, peStr);
 
         // 2. İstatistikleri Oluştur
