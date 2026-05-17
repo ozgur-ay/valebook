@@ -48,6 +48,7 @@ router.get('/summary', (req, res) => {
         const rate = commissionSetting ? parseFloat(commissionSetting.value) : 0;
         
         const totalCommission = (income.total_card || 0) * (rate / 100);
+        const totalExpense = expense.reduce((sum, item) => sum + item.total_amount, 0);
         const netProfitAfterCommission = (income.total_income || 0) - totalExpense - totalCommission;
 
         res.json({
@@ -66,6 +67,7 @@ router.get('/summary', (req, res) => {
             pos_rate: rate
         });
     } catch (error) {
+        require('fs').appendFileSync(require('path').join(__dirname, '../../valebook-error.log'), `[${new Date().toISOString()}] REPORTS GET ERROR: ${error.stack}\n`);
         res.status(500).json({ error: error.message });
     }
 });
@@ -90,6 +92,7 @@ router.get('/export-excel', async (req, res) => {
         await workbook.xlsx.write(res);
         res.end();
     } catch (error) {
+        require('fs').appendFileSync(require('path').join(__dirname, '../../valebook-error.log'), `[${new Date().toISOString()}] EXCEL EXPORT ERROR: ${error.stack}\n`);
         res.status(500).json({ error: error.message });
     }
 });
