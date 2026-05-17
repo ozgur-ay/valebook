@@ -79,7 +79,6 @@ const App = {
         // Gönder işlevi
         document.getElementById('sendFeedbackBtn').onclick = async () => {
             const text = document.getElementById('feedbackText').value.trim();
-            if(!text) return this.showToast(LANG.errEmpty, 'error');
 
             const btnSend = document.getElementById('sendFeedbackBtn');
             btnSend.disabled = true;

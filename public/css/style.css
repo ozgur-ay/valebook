@@ -584,6 +584,12 @@ input[type="date"] {
     color: white;
     padding: 0.75rem;
     font-family: inherit;
+    /* Etkileşim Bug Çözümleri */
+    pointer-events: auto !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -webkit-app-region: no-drag !important;
+    cursor: text !important;
 }
 
 .feedback-modal-footer {
