@@ -11,7 +11,7 @@ const TELEGRAM_THREAD_ID = '6';
 
 router.post('/', async (req, res) => {
     try {
-        const { message, user, type } = req.body;
+        const { message, user, type, screenshot } = req.body;
         
         if (!TELEGRAM_CHAT_ID) {
             console.error('Telegram Chat ID not set');
@@ -23,32 +23,50 @@ router.post('/', async (req, res) => {
         const errorLogPath = path.join(__dirname, '../../valebook-error.log');
         let hasLogFile = fs.existsSync(errorLogPath);
 
-        const formData = new FormData();
-        formData.append('chat_id', TELEGRAM_CHAT_ID);
-        if (TELEGRAM_THREAD_ID) {
-            formData.append('message_thread_id', TELEGRAM_THREAD_ID);
+        let telegramPromises = [];
+
+        if (screenshot) {
+            const base64Data = screenshot.split(',')[1];
+            const buffer = Buffer.from(base64Data, 'base64');
+            const fileBlob = new Blob([buffer]);
+
+            const photoData = new FormData();
+            photoData.append('chat_id', TELEGRAM_CHAT_ID);
+            if (TELEGRAM_THREAD_ID) photoData.append('message_thread_id', TELEGRAM_THREAD_ID);
+            photoData.append('caption', text);
+            photoData.append('parse_mode', 'Markdown');
+            photoData.append('photo', fileBlob, 'screenshot.jpeg');
+
+            telegramPromises.push(
+                fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendPhoto`, { method: 'POST', body: photoData })
+            );
+        } else {
+            const msgData = new FormData();
+            msgData.append('chat_id', TELEGRAM_CHAT_ID);
+            if (TELEGRAM_THREAD_ID) msgData.append('message_thread_id', TELEGRAM_THREAD_ID);
+            msgData.append('text', text);
+            msgData.append('parse_mode', 'Markdown');
+            
+            telegramPromises.push(
+                fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, { method: 'POST', body: msgData })
+            );
         }
-        formData.append('caption', text);
-        formData.append('parse_mode', 'Markdown');
 
         if (hasLogFile) {
-            const fileBlob = new Blob([fs.readFileSync(errorLogPath)]);
-            formData.append('document', fileBlob, 'valebook-error.log');
-        } else {
-            // Eğer dosya yoksa düz mesaj at
-            formData.append('text', text);
+            const logData = new FormData();
+            logData.append('chat_id', TELEGRAM_CHAT_ID);
+            if (TELEGRAM_THREAD_ID) logData.append('message_thread_id', TELEGRAM_THREAD_ID);
+            logData.append('caption', "📄 ValeBook Auto Error Log");
+            const logBlob = new Blob([fs.readFileSync(errorLogPath)]);
+            logData.append('document', logBlob, 'valebook-error.log');
+
+            telegramPromises.push(
+                fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument`, { method: 'POST', body: logData })
+            );
         }
 
-        const url = hasLogFile 
-            ? `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument`
-            : `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
-
-        const response = await fetch(url, {
-            method: 'POST',
-            body: formData
-        });
-
-        const data = await response.json();
+        const responses = await Promise.all(telegramPromises);
+        const data = await responses[0].json();
 
         if (data.ok) {
             res.json({ success: true, message: 'Feedback sent successfully.' });

@@ -7,6 +7,8 @@ const LANG = {
     modalTitle: 'Sistem Geri Bildirim Formu',
     modalDesc: 'L\u00fctfen ya\u015fad\u0131\u011f\u0131n\u0131z sorunu veya \u00f6nerinizi detayl\u0131ca yaz\u0131n\u0131z. (Sistem hata raporlar\u0131 otomatik olarak eklenecektir).',
     placeholder: '\u00d6rn: X sayfas\u0131na girince sistem donuyor...',
+    attachImgBtn: '\ud83d\udcf0 Ekran G\u00f6r\u00fcnt\u00fcs\u00fc Ekle (Opsiyonel)',
+    imgSelected: 'G\u00f6rsel Se\u00e7ildi',
     btnCancel: '\u0130ptal',
     btnSend: 'G\u00f6nder',
     btnSending: 'G\u00f6nderiliyor...',
@@ -49,6 +51,10 @@ const App = {
                     <div class="feedback-modal-body">
                         <p>${LANG.modalDesc}</p>
                         <textarea id="feedbackText" placeholder="${LANG.placeholder}" rows="5"></textarea>
+                        <div style="margin-top: 1rem;">
+                            <input type="file" id="feedbackScreenshot" accept="image/*" style="display:none">
+                            <button class="btn btn-sm btn-secondary" onclick="document.getElementById('feedbackScreenshot').click()" id="lblScreenshotBtn" style="width: 100%; border: 1px dashed var(--text-gray); background: transparent; color: var(--text-gray);">${LANG.attachImgBtn}</button>
+                        </div>
                     </div>
                     <div class="feedback-modal-footer">
                         <button class="btn btn-secondary" onclick="document.getElementById('feedbackModal').classList.remove('active')">${LANG.btnCancel}</button>
@@ -59,6 +65,17 @@ const App = {
         `;
         document.body.insertAdjacentHTML('beforeend', modalHtml);
 
+        // Görsel seçilince buton textini değiştir
+        document.getElementById('feedbackScreenshot').onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const lbl = document.getElementById('lblScreenshotBtn');
+                lbl.innerText = '✅ ' + file.name + ' (' + LANG.imgSelected + ')';
+                lbl.style.borderColor = 'var(--success)';
+                lbl.style.color = 'var(--success)';
+            }
+        };
+
         // Gönder işlevi
         document.getElementById('sendFeedbackBtn').onclick = async () => {
             const text = document.getElementById('feedbackText').value.trim();
@@ -68,12 +85,23 @@ const App = {
             btnSend.disabled = true;
             btnSend.innerText = LANG.btnSending;
 
+            // Base64 okuma
+            const fileInput = document.getElementById('feedbackScreenshot');
+            let base64Image = null;
+            if (fileInput.files.length > 0) {
+                base64Image = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(fileInput.files[0]);
+                });
+            }
+
             try {
                 // native fetch for form logic if needed, but since our server expects json for message
                 const res = await fetch('/api/feedback', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, type: LANG.type })
+                    body: JSON.stringify({ message: text, type: LANG.type, screenshot: base64Image })
                 });
                 
                 const data = await res.json();
@@ -81,6 +109,11 @@ const App = {
                     this.showToast(LANG.successMsg, 'success');
                     document.getElementById('feedbackModal').classList.remove('active');
                     document.getElementById('feedbackText').value = '';
+                    document.getElementById('feedbackScreenshot').value = '';
+                    const lbl = document.getElementById('lblScreenshotBtn');
+                    lbl.innerText = LANG.attachImgBtn;
+                    lbl.style.borderColor = 'var(--text-gray)';
+                    lbl.style.color = 'var(--text-gray)';
                 } else {
                     this.showToast(LANG.errPrefix + data.message, 'error');
                 }
