@@ -191,19 +191,49 @@ const Expense = {
                         <tbody>
             `;
 
-            items.forEach(itemStr => {
+            // Elemanları parse edip kategoriye göre grupla
+            const parsedItems = items.filter(i => i.trim()).map(itemStr => {
                 const [cat, desc, amt, method, id] = itemStr.split(':::');
-                const methodText = method === 'cash' ? 'Nakit' : 'Kredi Kartı';
-                detailHtml += `
-                    <tr>
-                        <td><span class="category-badge">${cat}</span></td>
-                        <td>${desc || '-'}</td>
-                        <td style="font-size: 0.75rem; color: var(--text-gray)">${methodText}</td>
-                        <td class="text-danger">-${App.formatCurrency(parseFloat(amt))}</td>
-                        <td><button class="btn btn-sm" style="color:var(--danger); border:none; background:transparent;" onclick="Expense.deleteItem(${id}); event.stopPropagation();" title="Sil">🗑️</button></td>
-                    </tr>
-                `;
+                return { cat, desc, amt: parseFloat(amt), method, id };
             });
+
+            const grouped = {};
+            parsedItems.forEach(item => {
+                if(!grouped[item.cat]) grouped[item.cat] = [];
+                grouped[item.cat].push(item);
+            });
+
+            // Grupları dolaş ve tabloya yazdır
+            for (const [category, catItems] of Object.entries(grouped)) {
+                catItems.forEach(item => {
+                    const methodText = item.method === 'cash' ? 'Nakit' : 'Kredi Kartı';
+                    detailHtml += `
+                        <tr>
+                            <td><span class="category-badge">${item.cat}</span></td>
+                            <td>${item.desc || '-'}</td>
+                            <td style="font-size: 0.75rem; color: var(--text-gray)">${methodText}</td>
+                            <td class="text-danger">-${App.formatCurrency(item.amt)}</td>
+                            <td><button class="btn btn-sm" style="color:var(--danger); border:none; background:transparent;" onclick="Expense.deleteItem(${item.id}); event.stopPropagation();" title="Sil">🗑️</button></td>
+                        </tr>
+                    `;
+                });
+
+                // Birden fazla giriş varsa ARA TOPLAM satırı ekle
+                if (catItems.length > 1) {
+                    const subtotal = catItems.reduce((acc, curr) => acc + curr.amt, 0);
+                    detailHtml += `
+                        <tr style="background-color: rgba(255,255,255,0.03);">
+                            <td colspan="3" style="text-align: right; border:none; padding: 0.5rem 1rem; color: var(--text-gray);">
+                                <strong>${category} Ara Toplam:</strong>
+                            </td>
+                            <td class="text-danger" style="border:none; padding: 0.5rem 1rem;">
+                                <strong>-${App.formatCurrency(subtotal)}</strong>
+                            </td>
+                            <td style="border:none;"></td>
+                        </tr>
+                    `;
+                }
+            }
 
             detailHtml += `
                         </tbody>
