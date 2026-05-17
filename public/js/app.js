@@ -30,6 +30,8 @@ const App = {
         this.displayCurrentDate();
         this.loadVersion();
         this.setupFeedbackModal();
+        this.setupUpdateOverlay();
+        this.listenForUpdates();
     },
 
     setupFeedbackModal() {
@@ -124,7 +126,53 @@ const App = {
             }
         };
     },
+    setupUpdateOverlay() {
+        const overlayHtml = `
+            <div class="update-overlay" id="globalUpdateOverlay">
+                <div class="update-box">
+                    <h2 id="updateTitle">Sistem Güncelleniyor</h2>
+                    <p id="updateText">Yeni özellikler ve iyileştirmeler indiriliyor. Lütfen bekleyin...</p>
+                    <div class="progress-container">
+                        <div class="progress-fill" id="updateProgressFill"></div>
+                    </div>
+                    <div class="progress-text" id="updateProgressText">0%</div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', overlayHtml);
+    },
 
+    listenForUpdates() {
+        if (window.electron && window.electron.onUpdateStatus) {
+            window.electron.onUpdateStatus((status) => {
+                const overlay = document.getElementById('globalUpdateOverlay');
+                const fill = document.getElementById('updateProgressFill');
+                const text = document.getElementById('updateProgressText');
+                const title = document.getElementById('updateTitle');
+                const desc = document.getElementById('updateText');
+
+                if (status.type === 'progress') {
+                    overlay.classList.add('active');
+                    const percent = Math.floor(status.percent);
+                    fill.style.width = percent + '%';
+                    text.innerText = percent + '%';
+                    title.innerText = 'Güncelleme İndiriliyor';
+                } else if (status.type === 'downloaded') {
+                    overlay.classList.add('active');
+                    fill.style.width = '100%';
+                    text.innerText = 'Tamamlandı';
+                    title.innerText = 'Yükleme Başlıyor';
+                    desc.innerText = 'Güncelleme başarıyla indirildi. Uygulama şimdi yeniden başlatılacak...';
+                } else if (status.type === 'error') {
+                    // Hatayı sadece toast olarak göster, overlay'i kapat
+                    this.showToast('Güncelleme hatası: ' + status.message, 'danger');
+                    overlay.classList.remove('active');
+                } else if (status.type === 'idle' || status.type === 'not-available') {
+                    overlay.classList.remove('active');
+                }
+            });
+        }
+    },
 
     // Tarih gösterimi
     displayCurrentDate() {
