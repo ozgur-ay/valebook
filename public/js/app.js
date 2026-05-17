@@ -153,25 +153,24 @@ const App = {
                 const title = document.getElementById('updateTitle');
                 const desc = document.getElementById('updateText');
 
-                } else if (status.type === 'available' || status.type === 'progress') {
+                if (status.type === 'available' || status.type === 'progress') {
                     overlay.classList.add('active');
                     const percent = status.percent ? Math.floor(status.percent) : 0;
                     fill.style.width = percent + '%';
                     text.innerText = percent + '%';
                     title.innerText = 'SİSTEM GÜNCELLENİYOR';
-                    desc.innerText = 'DOSYALAR İNDİRİLİYOR, LÜTFEN BEKLEYİNİZ...';
+                    desc.innerText = 'DOSYALAR İNDİRİLİLİYOR, LÜTFEN BEKLEYİNİZ...';
                 } else if (status.type === 'downloaded') {
                     overlay.classList.add('active');
                     fill.style.width = '100%';
                     text.innerText = '100%';
                     title.innerText = 'YÜKLEME HAZIR';
-                    desc.innerText = 'UYGULAMA YENİDEN BAŞLATILIYOR...';
-                    desc.innerText = 'Güncelleme başarıyla indirildi. Uygulama şimdi yeniden başlatılacak...';
+                    desc.innerText = 'GÜNCELLEME BAŞARIYLA İNDİRİLDİ, SİSTEM YENİDEN BAŞLATILIYOR...';
                 } else if (status.type === 'error') {
                     // Hatayı sadece toast olarak göster, overlay'i kapat
                     this.showToast('Güncelleme hatası: ' + status.message, 'danger');
                     overlay.classList.remove('active');
-                } else if (status.type === 'idle' || status.type === 'not-available') {
+                } else if (status.type === 'idle' || status.type === 'not-available' || status.type === 'checking') {
                     overlay.classList.remove('active');
                 }
             });
