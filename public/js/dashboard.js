@@ -84,9 +84,10 @@ const Dashboard = {
         try {
             const url = `/dashboard/stats?from=${range.from}&to=${range.to}&compareFrom=${range.compareFrom}&compareTo=${range.compareTo}`;
             const data = await App.fetchAPI(url);
+            console.log('[Dashboard Stats]:', data);
             
             const cur = data.current;
-            const prev = data.comparison;
+            const prev = data.comparison || { vehicle_count: 0, total_income: 0, cash_total: 0, total_expense: 0 };
 
             // Değerleri bas
             document.getElementById('todayVehicleCount').innerText = cur.vehicle_count;
@@ -164,10 +165,14 @@ const Dashboard = {
 
     async initCharts() {
         try {
-            const data = await App.fetchAPI('/dashboard/charts');
+            const range = this.getRangeDates(this.currentRange);
+            const data = await App.fetchAPI(`/dashboard/charts?from=${range.from}&to=${range.to}`);
+            console.log('[Dashboard Charts]:', data);
             this.renderIncomeChart(data.weeklyIncome);
             this.renderExpenseChart(data.categoryExpenses);
-        } catch (e) {}
+        } catch (e) {
+            console.error('Charts error:', e);
+        }
     },
 
     renderIncomeChart(data) {

@@ -134,6 +134,7 @@ router.get('/recent', (req, res) => {
         const income = db.prepare(`
             SELECT date, 'income' as type, 'Araç Girişi' as description, total_amount as amount, created_at
             FROM income
+            WHERE is_deleted = 0
             ORDER BY date DESC, created_at DESC
             LIMIT 5
         `).all();
@@ -141,6 +142,7 @@ router.get('/recent', (req, res) => {
         const expenses = db.prepare(`
             SELECT date, 'expense' as type, category || ': ' || description as description, amount, created_at
             FROM expense
+            WHERE is_deleted = 0
             ORDER BY date DESC, created_at DESC
             LIMIT 5
         `).all();
@@ -158,29 +160,55 @@ router.get('/recent', (req, res) => {
     }
 });
 
+// DIAGNOSTIC ROUTE
+router.get('/debug', (req, res) => {
+    try {
+        const incomeCount = db.prepare('SELECT COUNT(*) as count FROM income').get();
+        const deletedIncome = db.prepare('SELECT COUNT(*) as count FROM income WHERE is_deleted = 1').get();
+        const liveIncome = db.prepare('SELECT COUNT(*) as count FROM income WHERE is_deleted = 0').get();
+        const sampleIncome = db.prepare('SELECT id, date, total_amount, is_deleted FROM income ORDER BY id DESC LIMIT 5').all();
+        
+        res.json({
+            incomeCount,
+            deletedIncome,
+            liveIncome,
+            sampleIncome,
+            dbPath: db.name || 'unknown'
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Grafik Verileri (Haftalık gelir ve Kategori dağılımı)
 router.get('/charts', (req, res) => {
     try {
-        // 1. Son 7 günün tarihlerini belirle (Eksik günleri 0 ile doldurmak için)
+        const { from, to } = req.query; // Artık range alıyoruz!
+        
+        // 1. Son 7 günün tarihlerini belirle (Eğer from/to yoksa varsayılan son 7 gün)
         const days = [];
+        const endDate = to ? new Date(to) : new Date();
         for (let i = 6; i >= 0; i--) {
-            const d = new Date();
+            const d = new Date(endDate);
             d.setDate(d.getDate() - i);
             days.push(d.toISOString().split('T')[0]);
         }
 
-        // 2. Veritabanından mevcut verileri çek
+        const statsFrom = from || days[0];
+        const statsTo = to || days[6];
+
+        // 2. Veritabanından mevcut verileri çek (Silinmemişler!)
         const rawIncome = db.prepare(`
             SELECT 
                 date, 
                 SUM(cash_amount) as cash, 
                 SUM(card_amount) as card 
             FROM income 
-            WHERE date >= ?
+            WHERE date BETWEEN ? AND ? AND is_deleted = 0
             GROUP BY date
-        `).all(days[0]);
+        `).all(statsFrom, statsTo);
 
-        // 3. Tarih dizisini baz alarak eksik günleri 0 ile doldur (Trendin sürekliliği için)
+        // 3. Tarih dizisini baz alarak eksik günleri 0 ile doldur
         const weeklyIncome = days.map(date => {
             const found = rawIncome.find(r => r.date === date);
             return {
@@ -190,15 +218,16 @@ router.get('/charts', (req, res) => {
             };
         });
 
-        // 4. Giderlerin kategorilere göre dağılımı
+        // 4. Giderlerin kategorilere göre dağılımı (Sadece seçili aralıktakiler ve silinmemişler!)
         const categoryExpenses = db.prepare(`
             SELECT 
                 category, 
                 SUM(amount) as total 
             FROM expense 
+            WHERE date BETWEEN ? AND ? AND is_deleted = 0
             GROUP BY category
             ORDER BY total DESC
-        `).all();
+        `).all(statsFrom, statsTo);
 
         res.json({
             weeklyIncome,
