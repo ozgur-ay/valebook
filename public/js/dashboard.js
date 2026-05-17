@@ -1,86 +1,173 @@
-/**
- * ValeBook Dashboard Mantığı.
- */
-
 const Dashboard = {
+    currentRange: 'daily',
+
     async init() {
-        await this.loadStats();
+        this.setupFilters();
+        await this.loadAll();
+    },
+
+    async loadAll() {
+        const range = this.getRangeDates(this.currentRange);
+        await this.loadStats(range);
         await this.loadRecentActivity();
         await this.initCharts();
     },
 
-    // Özet verileri yükle
-    async loadStats() {
+    setupFilters() {
+        const buttons = document.querySelectorAll('#timeRangeFilter button');
+        buttons.forEach(btn => {
+            btn.onclick = async () => {
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.currentRange = btn.dataset.range;
+                this.updateLabels();
+                await this.loadAll();
+            };
+        });
+        this.updateLabels();
+    },
+
+    updateLabels() {
+        const labels = {
+            daily: { v: 'Bugünkü Araç', c: 'Sıcak Nakit (Kasa)', e: 'Bugünkü Gider' },
+            weekly: { v: 'Haftalık Araç', c: 'Haftalık Kasa', e: 'Haftalık Gider' },
+            monthly: { v: 'Aylık Araç', c: 'Aylık Kasa', e: 'Aylık Gider' }
+        };
+        const active = labels[this.currentRange];
+        document.getElementById('vehicleLabel').innerText = active.v;
+        document.getElementById('cashLabel').innerText = active.c;
+        document.getElementById('expenseLabel').innerText = active.e;
+    },
+
+    getRangeDates(range) {
+        const now = new Date();
+        const today = now.toISOString().split('T')[0];
+        let from, to = today;
+        let cFrom, cTo;
+
+        if (range === 'daily') {
+            from = today;
+            const yesterday = new Date(now);
+            yesterday.setDate(now.getDate() - 1);
+            cFrom = cTo = yesterday.toISOString().split('T')[0];
+        } else if (range === 'weekly') {
+            // Pazartesi başlangıç
+            const day = now.getDay(); // 0 (Paz) - 6 (Cmt)
+            const diff = now.getDate() - (day === 0 ? 6 : day - 1);
+            const monday = new Date(now.setDate(diff));
+            from = monday.toISOString().split('T')[0];
+            
+            // Karşılaştırma: Geçen haftanın aynı günleri
+            const lastMon = new Date(monday);
+            lastMon.setDate(monday.getDate() - 7);
+            const lastSameDay = new Date(new Date().setDate(new Date().getDate() - 7));
+            cFrom = lastMon.toISOString().split('T')[0];
+            cTo = lastSameDay.toISOString().split('T')[0];
+        } else if (range === 'monthly') {
+            from = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+            
+            // Karşılaştırma: Geçen ayın 1'inden geçen ayın aynı gününe
+            const lastMonth = new Date(new Date().setMonth(new Date().getMonth() - 1));
+            cFrom = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}-01`;
+            const lastMonthSameDay = new Date(new Date().setMonth(new Date().getMonth() - 1));
+            cTo = lastMonthSameDay.toISOString().split('T')[0];
+        }
+
+        // Seçili aralık etiketini güncelle
+        const fmt = (d) => new Date(d).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+        document.getElementById('selectedRangeLabel').innerText = `${fmt(from)} - ${fmt(to)} Aralığı Gösteriliyor`;
+
+        return { from, to, compareFrom: cFrom, compareTo: cTo };
+    },
+
+    async loadStats(range) {
         try {
-            const data = await App.fetchAPI('/dashboard/today');
-            const summary = data.summary;
+            const url = `/dashboard/stats?from=${range.from}&to=${range.to}&compareFrom=${range.compareFrom}&compareTo=${range.compareTo}`;
+            const data = await App.fetchAPI(url);
             
-            // Sıcak Nakit: Backend'den gelen summary.cash_total (Nakit + Tahsil Edilmiş - Giderler)
-            const cashInHand = summary.cash_total;
+            const cur = data.current;
+            const prev = data.comparison;
 
-            document.getElementById('todayVehicleCount').innerText = summary.vehicle_count;
-            document.getElementById('cashInHand').innerText = App.formatCurrency(cashInHand);
-            document.getElementById('pendingBank').innerText = App.formatCurrency(summary.pending_pos);
-            
-            // Komisyon notunu güncelle
-            const commissionNote = document.getElementById('pendingCommissionNote');
-            if (commissionNote && summary.total_pending_commission > 0) {
-                commissionNote.innerText = `(${"Kesinti hari\u00e7 net. " + "Tahmini Kesinti: " + App.formatCurrency(summary.total_pending_commission)})`;
-            } else if (commissionNote) {
-                commissionNote.innerText = "(Kesinti hari\u00e7 net)";
-            }
+            // Değerleri bas
+            document.getElementById('todayVehicleCount').innerText = cur.vehicle_count;
+            document.getElementById('cashInHand').innerText = App.formatCurrency(cur.cash_total);
+            document.getElementById('todayTotalExpense').innerText = App.formatCurrency(cur.total_expense);
+            document.getElementById('pendingBank').innerText = App.formatCurrency(data.pending_pos);
 
-            document.getElementById('todayTotalIncome').innerText = App.formatCurrency(summary.total_income);
-            
-            // Kasa durumuna göre renk ayarla
-            const cashEl = document.getElementById('cashInHand');
-            if (cashInHand < 0) {
-                cashEl.style.color = 'var(--danger)';
-            } else {
-                cashEl.style.color = '#10b981'; // Success emerald
-            }
+            // Trendleri hesapla ve göster
+            this.renderTrend('trendVehicle', cur.vehicle_count, prev.vehicle_count);
+            this.renderTrend('trendCash', cur.cash_total, prev.cash_total);
+            this.renderTrend('trendExpense', cur.total_expense, prev.total_expense, true); // Gider artışı kötüdür
+
+            // Banka notu
+            const n = document.getElementById('pendingCommissionNote');
+            if (n) n.innerText = `(Tahmini Kesinti: ${App.formatCurrency(data.total_pending_commission)})`;
+
+            // Kasa renk
+            document.getElementById('cashInHand').style.color = cur.cash_total < 0 ? 'var(--danger)' : '#10b981';
+
         } catch (error) {
-            console.error('Stats loading error:', error);
+            console.error('Stats error:', error);
         }
     },
 
-    // Son işlemleri listele
+    renderTrend(elementId, current, previous, inverse = false) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+
+        if (!previous || previous === 0) {
+            el.style.display = 'none';
+            return;
+        }
+
+        const diff = current - previous;
+        const percent = Math.abs(Math.round((diff / previous) * 100));
+        
+        el.style.display = 'inline-block';
+        el.innerText = `%${percent}`;
+        el.className = 'trend-badge';
+
+        if (diff === 0) {
+            el.style.display = 'none';
+            return;
+        }
+
+        const isPositive = diff > 0;
+        const arrowClass = isPositive ? 'inc' : 'dec';
+        // inverse (Gider) ise: Artış (isPositive) Kırmızı (minus), Azalış Yeşil (plus)
+        // Normal (Gelir) ise: Artış Yeşil (plus), Azalış Kırmızı (minus)
+        const colorClass = inverse ? (isPositive ? 'minus' : 'plus') : (isPositive ? 'plus' : 'minus');
+        
+        el.classList.add(arrowClass, colorClass);
+    },
+
     async loadRecentActivity() {
         try {
             const recent = await App.fetchAPI('/dashboard/recent');
             const tbody = document.querySelector('#recentTransactionsTable tbody');
-            
             if (!tbody) return;
             tbody.innerHTML = '';
 
             recent.forEach(item => {
                 const tr = document.createElement('tr');
-                const typeLabel = item.type === 'income' ? 'Gelir' : 'Gider';
-                const typeClass = item.type === 'income' ? 'text-success' : 'text-danger';
-                
+                const isInc = item.type === 'income';
                 tr.innerHTML = `
                     <td>${new Date(item.date).toLocaleDateString('tr-TR')}</td>
-                    <td class="${typeClass}">${typeLabel}</td>
+                    <td class="${isInc ? 'text-success' : 'text-danger'}">${isInc ? 'Gelir' : 'Gider'}</td>
                     <td>${item.description}</td>
-                    <td class="${typeClass}">${item.type === 'income' ? '+' : '-'}${App.formatCurrency(item.amount)}</td>
+                    <td class="${isInc ? 'text-success' : 'text-danger'}">${isInc ? '+' : '-'}${App.formatCurrency(item.amount)}</td>
                 `;
                 tbody.appendChild(tr);
             });
-        } catch (error) {
-            console.error('Recent activity error:', error);
-        }
+        } catch (e) {}
     },
 
-    // Grafiklerin başlatılması ve verilerin yüklenmesi
     async initCharts() {
         try {
             const data = await App.fetchAPI('/dashboard/charts');
-            
             this.renderIncomeChart(data.weeklyIncome);
             this.renderExpenseChart(data.categoryExpenses);
-        } catch (error) {
-            console.error('Chart loading error:', error);
-        }
+        } catch (e) {}
     },
 
     renderIncomeChart(data) {
@@ -88,15 +175,6 @@ const Dashboard = {
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         
-        // Premium gradientler
-        const cashGrad = ctx.createLinearGradient(0, 0, 0, 320);
-        cashGrad.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
-        cashGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
-        
-        const cardGrad = ctx.createLinearGradient(0, 0, 0, 320);
-        cardGrad.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
-        cardGrad.addColorStop(1, 'rgba(59, 130, 246, 0)');
-
         const labels = data.map(item => new Date(item.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }));
         const cashData = data.map(item => item.cash);
         const cardData = data.map(item => item.card);
@@ -108,62 +186,11 @@ const Dashboard = {
             data: {
                 labels: labels,
                 datasets: [
-                    {
-                        label: 'Nakit (₺)',
-                        data: cashData,
-                        borderColor: '#10b981',
-                        backgroundColor: cashGrad,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#10b981',
-                        borderWidth: 3,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    },
-                    {
-                        label: 'Kart / POS (₺)',
-                        data: cardData,
-                        borderColor: '#3b82f6',
-                        backgroundColor: cardGrad,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#3b82f6',
-                        borderWidth: 3,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    }
+                    { label: 'Nakit (₺)', data: cashData, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.4 },
+                    { label: 'Kart (₺)', data: cardData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 }
                 ]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        align: 'end',
-                        labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 }, usePointStyle: true, padding: 20 }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        titleFont: { size: 13, weight: '700' },
-                        bodyFont: { size: 13 },
-                        padding: 12,
-                        cornerRadius: 10,
-                        displayColors: true
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(255, 255, 255, 0.03)', drawBorder: false },
-                        ticks: { color: '#64748b', font: { size: 11 }, padding: 10 }
-                    },
-                    x: {
-                        grid: { display: false },
-                        ticks: { color: '#64748b', font: { size: 11 }, padding: 10 }
-                    }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
         });
     },
 
@@ -171,53 +198,20 @@ const Dashboard = {
         const canvas = document.getElementById('expenseDistributionChart');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-        
-        if (data.length === 0) {
-            ctx.font = '14px Inter';
-            ctx.fillStyle = '#94a3b8';
-            ctx.textAlign = 'center';
-            ctx.fillText('Henüz gider verisi yok.', ctx.canvas.width / 2, ctx.canvas.height / 2);
-            return;
-        }
-
-        const labels = data.map(item => item.category);
-        const values = data.map(item => item.total);
-
         if (window.expenseChart) window.expenseChart.destroy();
-
         window.expenseChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: labels,
-                datasets: [{
-                    data: values,
-                    backgroundColor: [
-                        '#3b82f6', '#10b981', '#f59e0b', '#ef4444', 
-                        '#8b5cf6', '#ec4899', '#06b6d4', '#475569'
-                    ],
-                    borderWidth: 0,
-                    hoverOffset: 15
-                }]
+                labels: data.map(i => i.category),
+                datasets: [{ data: data.map(i => i.total), backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'] }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '75%',
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 }, padding: 15, usePointStyle: true }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        cornerRadius: 10,
-                        padding: 12
-                    }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false }
         });
     }
 };
+
+document.addEventListener('DOMContentLoaded', () => Dashboard.init());
+
 
 // Dashboard başlat
 document.addEventListener('DOMContentLoaded', () => Dashboard.init());

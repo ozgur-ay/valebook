@@ -7,49 +7,73 @@ const db = require('../database');
  */
 
 // Bugünün özeti (Araç sayısı, toplam gelir, toplam gider)
-router.get('/today', (req, res) => {
+// Dinamik İstatistik Rotası (Tarih Aralıklı + Karşılaştırmalı)
+router.get('/stats', (req, res) => {
     try {
-        const today = new Date().toISOString().split('T')[0];
+        const { from, to, compareFrom, compareTo } = req.query;
+        if (!from || !to) return res.status(400).json({ error: 'Date range required' });
 
-        // Gelir özeti (Nakit ve Kart ayrımı)
-        const income = db.prepare(`
-            SELECT 
-                SUM(vehicle_count) as total_vehicles,
-                SUM(cash_amount) as total_cash,
-                SUM(card_amount) as total_card,
-                SUM(total_amount) as total_income
-            FROM income 
-            WHERE date = ? AND is_deleted = 0
-        `).get(today);
+        const getStats = (f, t) => {
+            const income = db.prepare(`
+                SELECT 
+                    SUM(vehicle_count) as total_vehicles,
+                    SUM(cash_amount) as total_cash,
+                    SUM(card_amount) as total_card,
+                    SUM(iban_amount) as total_iban,
+                    SUM(total_amount) as total_income
+                FROM income 
+                WHERE date BETWEEN ? AND ? AND is_deleted = 0
+            `).get(f, t) || {};
 
-        // --- Toplam Harcanabilir (Sıcak Nakit) ---
-        // Kasa (Nakit) + Tahsil Edilmiş POS (Tahsilat tarihine göre) - Giderler
-        // Not: Nakit gelirler işlem tarihinde kasaya girer, POS ise bankaya yattığı tarihte (pos_collected_date)
-        const totalCashIncome = db.prepare('SELECT SUM(cash_amount) as total FROM income WHERE is_deleted = 0 AND date = ?').get(today).total || 0;
-        const totalPosCollected = db.prepare('SELECT SUM(pos_collected_amount) as total FROM income WHERE is_deleted = 0 AND pos_collected_date = ?').get(today).total || 0;
-        const totalExpenses = db.prepare('SELECT SUM(amount) as total FROM expense WHERE is_deleted = 0 AND date = ?').get(today).total || 0;
-        
-        // --- Bankada Bekleyen ---
-        // (Toplam Bekleyen POS Net) - (Zaten Tahsil Edilmiş)
+            const expense = db.prepare(`
+                SELECT SUM(amount) as total FROM expense 
+                WHERE date BETWEEN ? AND ? AND is_deleted = 0
+            `).get(f, t) || {};
+
+            // Harcanabilir (Sıcak Kasa): (Nakit + IBAN + Tahsil Edilmiş POS) - Giderler
+            const totalCashIncome = income.total_cash || 0;
+            const totalIbanIncome = income.total_iban || 0;
+            const totalPosCollected = db.prepare('SELECT SUM(pos_collected_amount) as total FROM income WHERE is_deleted = 0 AND pos_collected_date BETWEEN ? AND ?').get(f, t).total || 0;
+            const totalExpenses = expense.total || 0;
+
+            return {
+                vehicle_count: income.total_vehicles || 0,
+                total_income: income.total_income || 0,
+                cash_total: (totalCashIncome + totalIbanIncome + totalPosCollected) - totalExpenses,
+                total_expense: totalExpenses
+            };
+        };
+
+        const current = getStats(from, to);
+        let comparison = null;
+
+        if (compareFrom && compareTo) {
+            comparison = getStats(compareFrom, compareTo);
+        }
+
+        // Bankada Bekleyen Mevcut Durum (Aralıktan Bağımsız, Anlık)
         const commissionSetting = db.prepare('SELECT value FROM settings WHERE key = "pos_commission_rate"').get();
         const rate = commissionSetting ? parseFloat(commissionSetting.value) : 0;
-        
         const pendingCardTotal = db.prepare("SELECT SUM(card_amount) as total FROM income WHERE is_deleted = 0 AND pos_status != 'collected'").get().total || 0;
         const pendingCollectedPart = db.prepare("SELECT SUM(pos_collected_amount) as total FROM income WHERE is_deleted = 0 AND pos_status != 'collected'").get().total || 0;
         const pendingNetVal = (pendingCardTotal * (1 - rate / 100)) - pendingCollectedPart;
 
         res.json({
-            summary: {
-                vehicle_count: income.total_vehicles || 0,
-                cash_total: (totalCashIncome + totalPosCollected) - totalExpenses, // Gerçek Harcanabilir
-                pending_pos: Math.max(0, pendingNetVal), // Bankada Kalan
-                total_pending_commission: (pendingCardTotal * (rate / 100)), // Toplam Kesinti
-                total_income: income.total_income || 0
-            }
+            current,
+            comparison,
+            pending_pos: Math.max(0, pendingNetVal),
+            total_pending_commission: (pendingCardTotal * (rate / 100)),
+            pos_rate: rate
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+});
+
+// Eski /today rotasını geriye uyumluluk için koruyoruz
+router.get('/today', (req, res) => {
+    const today = new Date().toISOString().split('T')[0];
+    res.redirect(`/api/dashboard/stats?from=${today}&to=${today}`);
 });
 
 // Bu ayın özeti ve Net Kâr

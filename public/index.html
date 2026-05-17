@@ -29,21 +29,35 @@
         <main class="content">
             <header class="top-bar">
                 <div class="breadcrumb">Dashboard / Genel Bakış</div>
+                <div class="time-filter-wrapper">
+                    <div class="segmented-control" id="timeRangeFilter">
+                        <button class="active" data-range="daily">Günlük</button>
+                        <button data-range="weekly">Haftalık</button>
+                        <button data-range="monthly">Aylık</button>
+                    </div>
+                </div>
                 <div class="date-display" id="currentDate">-- -- ----</div>
             </header>
+            <div id="selectedRangeLabel" style="text-align: center; color: var(--text-gray); font-size: 0.85rem; margin-top: -1.5rem; margin-bottom: 2rem; font-weight: 500;"></div>
 
             <section class="dashboard-overview">
                 <!-- Özet Kartları -->
                 <div class="stats-grid">
                     <div class="glass-card stat-card">
-                        <span class="label">Bugünkü Araç</span>
-                        <div class="value" id="todayVehicleCount">0</div>
+                        <span class="label" id="vehicleLabel">Bugünkü Araç</span>
+                        <div class="value-wrapper">
+                            <div class="value" id="todayVehicleCount">0</div>
+                            <span class="trend-badge" id="trendVehicle"></span>
+                        </div>
                     </div>
                     <div class="glass-card stat-card highlight">
-                    <span class="label">Sıcak Nakit (Kasa)</span>
-                    <div class="value" id="cashInHand">₺0,00</div>
-                    <small style="color:var(--text-gray); font-size: 0.75rem; margin-top: 0.5rem; display: block;">(Nakit + Tahsil Edilmiş)</small>
-                </div>
+                        <span class="label" id="cashLabel">Sıcak Nakit (Kasa)</span>
+                        <div class="value-wrapper">
+                            <div class="value" id="cashInHand">₺0,00</div>
+                            <span class="trend-badge" id="trendCash"></span>
+                        </div>
+                        <small style="color:var(--text-gray); font-size: 0.75rem; margin-top: 0.5rem; display: block;">(Nakit + IBAN + Tahsil POS)</small>
+                    </div>
 
                 <div class="glass-card stat-card">
                     <span class="label">Bankada Bekleyen</span>
@@ -51,8 +65,11 @@
                     <small id="pendingCommissionNote" style="color:var(--text-gray); font-size: 0.75rem; margin-top: 0.5rem; display: block;">(Kesinti hariç net)</small>
                 </div>
                     <div class="glass-card stat-card">
-                        <span class="label">Bugünkü Gider</span>
-                        <div class="value" id="todayTotalExpense">₺0,00</div>
+                        <span class="label" id="expenseLabel">Bugünkü Gider</span>
+                        <div class="value-wrapper">
+                            <div class="value" id="todayTotalExpense">₺0,00</div>
+                            <span class="trend-badge" id="trendExpense"></span>
+                        </div>
                     </div>
                 </div>
  
