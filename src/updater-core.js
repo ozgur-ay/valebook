@@ -41,7 +41,53 @@ async function checkUpdateViaTags(mainWindow, showDialog = false) {
                 }).then((result) => {
                     if (result.response === 0) {
                         const downloadUrl = `https://github.com/ozgur-ay/valebook/releases/download/v${latestTag}/ValeBook-Setup-${latestTag}.exe`;
-                        mainWindow.webContents.downloadURL(downloadUrl);
+                        
+                        // İndirmeyi webContents yerine Native Node.js Sockets ile yapıyoruz (SmartScreen MotW Atlatması)
+                        const https = require('https');
+                        const fs = require('fs');
+                        const path = require('path');
+                        const { app, shell } = require('electron');
+                        
+                        const tempPath = path.join(app.getPath('temp'), `valebook_update_silent.exe`);
+                        const file = fs.createWriteStream(tempPath);
+                        
+                        const handleDownload = (url) => {
+                            https.get(url, (response) => {
+                                // GitHub Redirect Handle
+                                if (response.statusCode === 301 || response.statusCode === 302) {
+                                    handleDownload(response.headers.location);
+                                    return;
+                                }
+                                
+                                const totalBytes = parseInt(response.headers['content-length'], 10);
+                                let receivedBytes = 0;
+                                
+                                response.on('data', (chunk) => {
+                                    receivedBytes += chunk.length;
+                                    if (totalBytes) {
+                                        const percent = Math.floor((receivedBytes / totalBytes) * 100);
+                                        mainWindow.webContents.send('update-status', { type: 'progress', percent: percent, bytesPerSecond: 0 });
+                                    }
+                                });
+                                
+                                response.pipe(file);
+                                
+                                file.on('finish', () => {
+                                    file.close();
+                                    mainWindow.webContents.send('update-status', { type: 'downloaded' });
+                                    setTimeout(() => {
+                                        shell.openPath(tempPath).then(() => {
+                                            app.quit();
+                                        });
+                                    }, 1500);
+                                });
+                            }).on('error', (err) => {
+                                fs.unlink(tempPath, () => {});
+                                mainWindow.webContents.send('update-status', { type: 'error', message: 'İndirme uç noktası hatası: ' + err.message });
+                            });
+                        };
+                        
+                        handleDownload(downloadUrl);
                     }
                 });
             }
