@@ -57,6 +57,23 @@ router.get('/stats', (req, res) => {
         };
 
         const current = getStats(from, to);
+        
+        // ULTIMATE DEBUG: Write to file
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            const debugPath = path.join(process.env.APPDATA || (process.platform === 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + '/.local/share'), 'ValeBook', 'debug_stats.json');
+            
+            fs.writeFileSync(debugPath, JSON.stringify({
+                timestamp: new Date().toISOString(),
+                from, to,
+                current,
+                income_samples: db.prepare('SELECT id, date, total_amount, cash_amount, card_amount, iban_amount, vehicle_count, is_deleted FROM income ORDER BY id DESC LIMIT 20').all(),
+                expense_samples: db.prepare('SELECT id, date, amount, category, is_deleted FROM expense ORDER BY id DESC LIMIT 20').all(),
+                match_check: db.prepare('SELECT COUNT(*) as count FROM income WHERE date(date) BETWEEN date(?) AND date(?)').get(from, to)
+            }, null, 2));
+        } catch (e) {}
+
         console.log(`[Dashboard Stats Debug] Range: ${from} -> ${to}`);
         console.table(current);
 
