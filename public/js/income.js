@@ -135,6 +135,8 @@ const Income = {
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const editingId = document.getElementById('editingId').value;
+            
             const data = {
                 date: document.getElementById('date').value,
                 vehicle_count: parseInt(vehicleInput.value),
@@ -149,17 +151,26 @@ const Income = {
             };
 
             try {
-                await App.fetchAPI('/income', {
-                    method: 'POST',
-                    body: JSON.stringify(data)
-                });
+                if (editingId) {
+                    await App.fetchAPI(`/income/${editingId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(data)
+                    });
+                    App.showToast('Kayıt güncellendi.');
+                    document.getElementById('editingId').value = '';
+                    form.querySelector('button[type="submit"]').innerText = 'Kaydet';
+                } else {
+                    await App.fetchAPI('/income', {
+                        method: 'POST',
+                        body: JSON.stringify(data)
+                    });
+                    App.showToast('Gelir kaydı başarıyla eklendi.');
+                }
+                
                 await this.loadHistory();
-                App.showToast('Gelir kaydı başarıyla eklendi.');
-                // Formu tamamen temizlemek yerine son verileri koruyoruz
-                // Sadece araç sayısına odaklan
                 document.getElementById('vehicleCount').focus();
             } catch (error) {
-                App.showToast('Kayıt sırasında hata oluştu: ' + error.message, 'danger');
+                App.showToast('İşlem sırasında hata oluştu: ' + error.message, 'danger');
             }
         });
     },
@@ -184,18 +195,17 @@ const Income = {
                     <td>${App.formatCurrency(item.card_amount)}</td>
                     <td>${App.formatCurrency(item.iban_amount)}</td>
                     <td>${App.formatCurrency(item.total_amount)}</td>
-                    <td><small style="color:var(--text-gray)">Detay için tıkla</small></td>
+                    <td><small style="color:var(--text-gray)">Detay ve Düzenleme</small></td>
                 `;
                 
                 tr.addEventListener('click', () => this.toggleDetails(tr, item));
                 tbody.appendChild(tr);
 
-                // Gizli detay satırı
                 const detailTr = document.createElement('tr');
                 detailTr.className = 'details-row';
                 detailTr.id = `details-${index}`;
                 detailTr.style.display = 'none';
-                detailTr.innerHTML = `<td colspan="6" class="details-container"></td>`;
+                detailTr.innerHTML = `<td colspan="7" class="details-container"></td>`;
                 tbody.appendChild(detailTr);
             });
         } catch (error) {
@@ -208,7 +218,6 @@ const Income = {
         const detailRow = document.getElementById(`details-${index}`);
         const isActive = row.classList.contains('active');
 
-        // Diğerlerini kapat
         document.querySelectorAll('.expandable-row').forEach(r => r.classList.remove('active'));
         document.querySelectorAll('.details-row').forEach(r => r.style.display = 'none');
 
@@ -232,7 +241,7 @@ const Income = {
                                 <th>IBAN</th>
                                 <th>Toplam</th>
                                 <th>Not</th>
-                                <th>Sil</th>
+                                <th>İşlem</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -246,28 +255,62 @@ const Income = {
                 const isAll = method === 'mixed';
                 const methodText = isCash ? 'Nakit' : (isCard ? 'Kart' : (isIban ? 'IBAN' : 'Hepsi'));
 
+                // Detay verisini bir objeye dönüştürerek Düzenle butonuna paslayalım
+                const rowObj = JSON.stringify({
+                    id, date: data.date, vehicle_count: count, unit_fee: unitFee, 
+                    total_amount: total, payment_method: method, note, 
+                    cash_amount: isCash ? total : (isAll ? (parseFloat(total) - (parseFloat(ibanAmt || 0) + (isCard ? 0 : 0))) : 0), // simplified
+                    card_amount: isCard ? total : 0,
+                    iban_amount: ibanAmt || 0
+                }).replace(/"/g, '&quot;');
+
                 detailHtml += `
                     <tr>
                         <td>${count} Araç</td>
                         <td>${App.formatCurrency(unitFee)}</td>
                         <td><small>${methodText}</small></td>
-                        <td>${App.formatCurrency(isCash ? total : (isAll ? (parseFloat(total) - (parseFloat(total) % 1)) : 0))}</td> <!-- Simplified logic placeholder -->
+                        <td>${App.formatCurrency(isCash ? total : (isAll ? (data.cash_amount) : 0))}</td> 
                         <td>${App.formatCurrency(isCard ? total : 0)}</td>
-                        <td>${App.formatCurrency(isIban ? total : (isAll ? (ibanAmt || 0) : 0))}</td>
+                        <td>${App.formatCurrency(isIban ? total : (ibanAmt || 0))}</td>
                         <td class="text-success">${App.formatCurrency(total)}</td>
                         <td style="font-size:0.8rem; color:var(--text-gray)">${note || '-'}</td>
-                        <td><button class="btn btn-sm" style="color:var(--danger); background:transparent;" onclick="Income.deleteItem(${id}); event.stopPropagation();">🗑️</button></td>
+                        <td>
+                            <button class="btn btn-sm" style="background:transparent; padding:2px;" onclick="Income.startEdit(${rowObj}); event.stopPropagation();">✏️</button>
+                            <button class="btn btn-sm" style="background:transparent; padding:2px;" onclick="Income.deleteItem(${id}); event.stopPropagation();">🗑️</button>
+                        </td>
                     </tr>
                 `;
             });
 
-            detailHtml += `
-                        </tbody>
-                    </table>
-                </div>
-            `;
+            detailHtml += `</tbody></table></div>`;
             container.innerHTML = detailHtml;
         }
+    },
+
+    startEdit(item) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.getElementById('editingId').value = item.id;
+        document.getElementById('date').value = item.date;
+        document.getElementById('vehicleCount').value = item.vehicle_count;
+        document.getElementById('unitFee').value = item.unit_fee;
+        document.getElementById('totalAmount').value = item.total_amount;
+        document.getElementById('paymentMethod').value = item.payment_method;
+        document.getElementById('note').value = item.note || '';
+        
+        // Ödeme detaylarını doldur
+        document.getElementById('cashAmount').value = item.cash_amount || 0;
+        document.getElementById('cardAmount').value = item.card_amount || 0;
+        document.getElementById('ibanAmount').value = item.iban_amount || 0;
+
+        // Form görünürlüğünü güncelle
+        const event = new Event('change');
+        document.getElementById('paymentMethod').dispatchEvent(event);
+
+        const btn = document.querySelector('#incomeForm button[type="submit"]');
+        btn.innerText = 'Güncelle';
+        btn.classList.replace('btn-primary', 'btn-warning');
+
+        App.showToast('Düzenleme modu aktif.', 'info');
     },
 
     async deleteItem(id) {

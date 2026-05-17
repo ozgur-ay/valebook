@@ -282,7 +282,7 @@ router.put('/:id', (req, res) => {
         const { id } = req.params;
         const { 
             date, vehicle_count, unit_fee, total_amount, 
-            payment_method, cash_amount, card_amount, 
+            payment_method, cash_amount, card_amount, iban_amount,
             pos_status, pos_expected_date, note 
         } = req.body;
 

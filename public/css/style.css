@@ -590,6 +590,8 @@ input[type="date"] {
     -webkit-user-select: text !important;
     -webkit-app-region: no-drag !important;
     cursor: text !important;
+    position: relative;
+    z-index: 50;
 }
 
 .feedback-modal-footer {
