@@ -57,6 +57,28 @@ router.get('/stats', (req, res) => {
         };
 
         const current = getStats(from, to);
+        
+        // AI DEBUG: Write result to a file we can read
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            const debugPath = path.join(process.env.APPDATA || (process.platform === 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + '/.local/share'), 'ValeBook', 'debug_stats.json');
+            
+            const incomeDebug = db.prepare('SELECT id, date, total_amount, is_deleted FROM income LIMIT 10').all();
+            const expenseDebug = db.prepare('SELECT id, date, amount, is_deleted FROM expense LIMIT 10').all();
+            const matchedIncome = db.prepare('SELECT COUNT(*) as count FROM income WHERE date(date) BETWEEN date(?) AND date(?)').get(from, to);
+            
+            fs.writeFileSync(debugPath, JSON.stringify({
+                timestamp: new Date().toISOString(),
+                from, to,
+                current,
+                incomeCount: db.prepare('SELECT COUNT(*) as count FROM income').get(),
+                matchedIncome,
+                incomeDebug,
+                expenseDebug
+            }, null, 2));
+        } catch (e) {}
+
         console.log(`[Dashboard Stats Debug] Range: ${from} -> ${to}`);
         console.table(current);
 

@@ -110,6 +110,10 @@ const applyMigrations = () => {
         AND is_deleted = 0
     `);
     
+    // Eğer is_deleted NULL ise 0 yap (Eski veriler için kritik!)
+    db.exec(`UPDATE income SET is_deleted = 0 WHERE is_deleted IS NULL`);
+    db.exec(`UPDATE expense SET is_deleted = 0 WHERE is_deleted IS NULL`);
+    
     // Eğer pos_collected_amount NULL ise 0 yap
     db.exec(`UPDATE income SET pos_collected_amount = 0 WHERE pos_collected_amount IS NULL`);
     db.exec(`UPDATE income SET iban_amount = 0 WHERE iban_amount IS NULL`);
