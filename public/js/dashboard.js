@@ -90,49 +90,61 @@ const Dashboard = {
 
     getRangeDates(range) {
         const now = new Date();
-        const today = now.toISOString().split('T')[0];
+        // Zaman dilimi kaymasını önlemek için yerel formatlama yardımcısı
+        const toLocalISO = (date) => {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        };
+
+        const today = toLocalISO(now);
         let from = today;
         let to = today;
         let cFrom, cTo;
 
         if (range === 'daily') {
             from = today;
-            const yesterday = new Date();
+            const yesterday = new Date(now);
             yesterday.setDate(now.getDate() - 1);
-            cFrom = cTo = yesterday.toISOString().split('T')[0];
+            cFrom = cTo = toLocalISO(yesterday);
         } else if (range === 'weekly') {
-            // Pazartesi'den başla (Monday = 1)
-            const day = now.getDay(); // 0 (Sun) to 6 (Sat)
-            const diff = now.getDate() - (day === 0 ? 6 : day - 1);
-            const monday = new Date(now.getFullYear(), now.getMonth(), diff);
-            from = monday.toISOString().split('T')[0];
+            // Pazartesi'den başla (Monday = 1, Sunday = 0)
+            const day = now.getDay();
+            const diff = day === 0 ? 6 : day - 1;
+            const monday = new Date(now);
+            monday.setDate(now.getDate() - diff);
+            
+            from = toLocalISO(monday);
             to = today;
             
             const lastMon = new Date(monday);
             lastMon.setDate(monday.getDate() - 7);
-            const lastSameDay = new Date();
+            const lastSameDay = new Date(now);
             lastSameDay.setDate(now.getDate() - 7);
-            cFrom = lastMon.toISOString().split('T')[0];
-            cTo = lastSameDay.toISOString().split('T')[0];
+            cFrom = toLocalISO(lastMon);
+            cTo = toLocalISO(lastSameDay);
         } else if (range === 'monthly') {
-            from = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            from = toLocalISO(firstDay);
             to = today;
             
-            const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            cFrom = lastMonth.toISOString().split('T')[0];
+            const lastMonthFirst = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            cFrom = toLocalISO(lastMonthFirst);
             
             const lastMonthSameDay = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-            cTo = lastMonthSameDay.toISOString().split('T')[0];
+            cTo = toLocalISO(lastMonthSameDay);
         } else if (range === 'custom') {
             from = document.getElementById('customFrom').value || today;
             to = document.getElementById('customTo').value || today;
-            cFrom = null; cTo = null; // Custom aralıkta kıyaslama şimdilik yok
+            cFrom = null; cTo = null;
         }
 
         const fmt = (d) => {
             if (!d) return '...';
-            const dateObj = new Date(d);
-            if (isNaN(dateObj.getTime())) return d;
+            // YYYY-MM-DD literal stringini güvenli parse et (UTC kayması olmadan)
+            const parts = d.split('-');
+            const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
             return dateObj.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
         };
         document.getElementById('selectedRangeLabel').innerText = `${fmt(from)} - ${fmt(to)} Aralığı Gösteriliyor`;
