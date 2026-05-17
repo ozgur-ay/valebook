@@ -18,7 +18,8 @@ router.get('/summary', (req, res) => {
                 SUM(vehicle_count) as total_vehicles,
                 SUM(total_amount) as total_income,
                 SUM(cash_amount) as total_cash,
-                SUM(card_amount) as total_card
+                SUM(card_amount) as total_card,
+                SUM(iban_amount) as total_iban
             FROM income
             WHERE date BETWEEN ? AND ? AND is_deleted = 0
         `).get(from, to) || {};
@@ -57,6 +58,7 @@ router.get('/summary', (req, res) => {
                 total_income: incomeResult.total_income || 0,
                 total_cash: incomeResult.total_cash || 0,
                 total_card: incomeResult.total_card || 0,
+                total_iban: incomeResult.total_iban || 0,
                 total_commission: totalCommission,
                 total_expense: totalExpense,
                 net_profit: netProfitAfterCommission

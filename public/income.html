@@ -55,7 +55,8 @@
                                 <select id="paymentMethod">
                                     <option value="cash">Nakit</option>
                                     <option value="credit_card">Kredi Kartı (POS)</option>
-                                    <option value="mixed">Karışık</option>
+                                    <option value="iban">IBAN / Transfer</option>
+                                    <option value="mixed">Hepsi (Nakit + Kart + IBAN)</option>
                                 </select>
                             </div>
                             <div class="form-group" id="cashAmountGroup">
@@ -64,7 +65,11 @@
                             </div>
                             <div class="form-group" id="cardAmountGroup" style="display:none;">
                                 <label for="cardAmount">Kart Miktar (POS)</label>
-                                <input type="number" id="cardAmount" step="0.01">
+                                <input type="number" step="any" id="cardAmount" placeholder="0.00">
+                            </div>
+                            <div class="form-group" id="ibanAmountGroup" style="display:none;">
+                                <label for="ibanAmount">IBAN / Transfer</label>
+                                <input type="number" step="any" id="ibanAmount" placeholder="0.00">
                             </div>
                         </div>
                         <div class="form-group">
@@ -90,6 +95,7 @@
                                 <th>Toplam Araç</th>
                                 <th>Nakit Toplam</th>
                                 <th>Kart Toplam</th>
+                                <th>IBAN Toplam</th>
                                 <th>Genel Toplam</th>
                                 <th>İşlemler</th>
                             </tr>

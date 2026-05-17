@@ -84,6 +84,7 @@ const applyMigrations = () => {
         { table: 'income', column: 'pos_expected_date', type: 'TEXT' },
         { table: 'income', column: 'pos_collected_date', type: 'TEXT' },
         { table: 'income', column: 'is_deleted', type: 'INTEGER DEFAULT 0' },
+        { table: 'income', column: 'iban_amount', type: 'REAL DEFAULT 0' },
         { table: 'expense', column: 'is_deleted', type: 'INTEGER DEFAULT 0' }
     ];
 
@@ -111,6 +112,7 @@ const applyMigrations = () => {
     
     // Eğer pos_collected_amount NULL ise 0 yap
     db.exec(`UPDATE income SET pos_collected_amount = 0 WHERE pos_collected_amount IS NULL`);
+    db.exec(`UPDATE income SET iban_amount = 0 WHERE iban_amount IS NULL`);
 };
 
 applyMigrations();

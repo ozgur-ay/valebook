@@ -90,8 +90,10 @@ const Income = {
         const methodSelect = document.getElementById('paymentMethod');
         const cashGroup = document.getElementById('cashAmountGroup');
         const cardGroup = document.getElementById('cardAmountGroup');
+        const ibanGroup = document.getElementById('ibanAmountGroup');
         const cashInput = document.getElementById('cashAmount');
         const cardInput = document.getElementById('cardAmount');
+        const ibanInput = document.getElementById('ibanAmount');
 
         // Otomatik toplam hesapla
         const updateTotals = () => {
@@ -101,16 +103,29 @@ const Income = {
             if (methodSelect.value === 'cash') {
                 cashInput.value = total.toFixed(2);
                 cardInput.value = 0;
+                ibanInput.value = 0;
                 cashGroup.style.display = 'block';
                 cardGroup.style.display = 'none';
+                ibanGroup.style.display = 'none';
             } else if (methodSelect.value === 'credit_card') {
                 cardInput.value = total.toFixed(2);
                 cashInput.value = 0;
+                ibanInput.value = 0;
                 cashGroup.style.display = 'none';
                 cardGroup.style.display = 'block';
+                ibanGroup.style.display = 'none';
+            } else if (methodSelect.value === 'iban') {
+                ibanInput.value = total.toFixed(2);
+                cashInput.value = 0;
+                cardInput.value = 0;
+                cashGroup.style.display = 'none';
+                cardGroup.style.display = 'none';
+                ibanGroup.style.display = 'block';
             } else {
+                // HEPSİ Modu
                 cashGroup.style.display = 'block';
                 cardGroup.style.display = 'block';
+                ibanGroup.style.display = 'block';
             }
         };
 
@@ -128,7 +143,8 @@ const Income = {
                 payment_method: methodSelect.value,
                 cash_amount: parseFloat(cashInput.value || 0),
                 card_amount: parseFloat(cardInput.value || 0),
-                pos_status: methodSelect.value === 'cash' ? 'na' : 'pending',
+                iban_amount: parseFloat(ibanInput.value || 0),
+                pos_status: (methodSelect.value === 'credit_card' || methodSelect.value === 'mixed') ? 'pending' : 'na',
                 note: document.getElementById('note').value
             };
 
@@ -166,6 +182,7 @@ const Income = {
                     <td>${item.vehicle_count}</td>
                     <td>${App.formatCurrency(item.cash_amount)}</td>
                     <td>${App.formatCurrency(item.card_amount)}</td>
+                    <td>${App.formatCurrency(item.iban_amount)}</td>
                     <td>${App.formatCurrency(item.total_amount)}</td>
                     <td><small style="color:var(--text-gray)">Detay için tıkla</small></td>
                 `;
@@ -212,6 +229,7 @@ const Income = {
                                 <th>Ödeme</th>
                                 <th>Nakit</th>
                                 <th>Kart</th>
+                                <th>IBAN</th>
                                 <th>Toplam</th>
                                 <th>Not</th>
                                 <th>Sil</th>
@@ -221,20 +239,21 @@ const Income = {
             `;
 
             items.forEach(itemStr => {
-                const [id, unitFee, count, total, method, note] = itemStr.split(':::');
-                const cash = method === 'cash' ? total : (method === 'mixed' ? (parseFloat(total) - (parseFloat(total) % 1)) : 0); // Simplified for now
-                // Purely visual mapping for detail rows:
+                const [id, unitFee, count, total, method, note, ibanAmt] = itemStr.split(':::');
                 const isCash = method === 'cash';
                 const isCard = method === 'credit_card';
-                const methodText = isCash ? 'Nakit' : (isCard ? 'Kart' : 'Karışık');
+                const isIban = method === 'iban';
+                const isAll = method === 'mixed';
+                const methodText = isCash ? 'Nakit' : (isCard ? 'Kart' : (isIban ? 'IBAN' : 'Hepsi'));
 
                 detailHtml += `
                     <tr>
                         <td>${count} Araç</td>
                         <td>${App.formatCurrency(unitFee)}</td>
                         <td><small>${methodText}</small></td>
-                        <td>${App.formatCurrency(isCash ? total : 0)}</td>
+                        <td>${App.formatCurrency(isCash ? total : (isAll ? (parseFloat(total) - (parseFloat(total) % 1)) : 0))}</td> <!-- Simplified logic placeholder -->
                         <td>${App.formatCurrency(isCard ? total : 0)}</td>
+                        <td>${App.formatCurrency(isIban ? total : (isAll ? (ibanAmt || 0) : 0))}</td>
                         <td class="text-success">${App.formatCurrency(total)}</td>
                         <td style="font-size:0.8rem; color:var(--text-gray)">${note || '-'}</td>
                         <td><button class="btn btn-sm" style="color:var(--danger); background:transparent;" onclick="Income.deleteItem(${id}); event.stopPropagation();">🗑️</button></td>

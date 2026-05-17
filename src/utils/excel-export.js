@@ -16,7 +16,8 @@ async function exportToExcel(incomeData, expenseData, options = {}) {
         const mapping = {
             'cash': 'Nakit',
             'credit_card': 'Kredi Kartı',
-            'mixed': 'Karışık'
+            'iban': 'IBAN / Transfer',
+            'mixed': 'Hepsi'
         };
         return mapping[method] || method;
     };
@@ -47,6 +48,7 @@ async function exportToExcel(incomeData, expenseData, options = {}) {
         { header: 'Net Tutar', key: 'net_amount', width: 15 },
         { header: 'Nakit', key: 'cash_amount', width: 12 },
         { header: 'Kart (POS)', key: 'card_amount', width: 12 },
+        { header: 'IBAN / Transfer', key: 'iban_amount', width: 15 },
         { header: 'Ödeme Yöntemi', key: 'payment_method', width: 15 },
         { header: 'Not', key: 'note', width: 30 }
     ];

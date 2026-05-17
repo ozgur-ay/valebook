@@ -12,13 +12,13 @@ router.get('/', (req, res) => {
         const { from, to } = req.query;
         let baseQuery = `
             SELECT 
-                date,
                 SUM(vehicle_count) as vehicle_count,
                 SUM(cash_amount) as cash_amount,
                 SUM(card_amount) as card_amount,
+                SUM(iban_amount) as iban_amount,
                 SUM(total_amount) as total_amount,
                 GROUP_CONCAT(
-                    id || ':::' || unit_fee || ':::' || vehicle_count || ':::' || total_amount || ':::' || payment_method || ':::' || IFNULL(note, ''),
+                    id || ':::' || unit_fee || ':::' || vehicle_count || ':::' || total_amount || ':::' || payment_method || ':::' || IFNULL(note, '') || ':::' || IFNULL(iban_amount, 0),
                     ';;;'
                 ) as details
             FROM income 
@@ -244,16 +244,16 @@ router.post('/', (req, res) => {
     try {
         const { 
             date, vehicle_count, unit_fee, total_amount, 
-            payment_method, cash_amount, card_amount, 
+            payment_method, cash_amount, card_amount, iban_amount,
             pos_status, pos_expected_date, note 
         } = req.body;
 
         const stmt = db.prepare(`
             INSERT INTO income (
                 date, vehicle_count, unit_fee, total_amount, 
-                payment_method, cash_amount, card_amount, 
+                payment_method, cash_amount, card_amount, iban_amount,
                 pos_status, pos_expected_date, note, pos_collected_amount
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
         `);
 
         // Yeni eklenen POS'lar her zaman 'pending' başlar
@@ -264,7 +264,7 @@ router.post('/', (req, res) => {
 
         const info = stmt.run(
             date, vehicle_count, unit_fee, total_amount, 
-            payment_method, cash_amount, card_amount, 
+            payment_method, cash_amount, card_amount, iban_amount || 0,
             finalPosStatus, pos_expected_date, note
         );
 
@@ -288,14 +288,14 @@ router.put('/:id', (req, res) => {
         const stmt = db.prepare(`
             UPDATE income SET 
                 date = ?, vehicle_count = ?, unit_fee = ?, total_amount = ?, 
-                payment_method = ?, cash_amount = ?, card_amount = ?, 
+                payment_method = ?, cash_amount = ?, card_amount = ?, iban_amount = ?,
                 pos_status = ?, pos_expected_date = ?, note = ?
             WHERE id = ?
         `);
 
         stmt.run(
             date, vehicle_count, unit_fee, total_amount, 
-            payment_method, cash_amount, card_amount, 
+            payment_method, cash_amount, card_amount, iban_amount || 0,
             pos_status, pos_expected_date, note, id
         );
 

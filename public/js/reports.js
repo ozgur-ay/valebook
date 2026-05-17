@@ -53,26 +53,25 @@ const Reports = {
                 tbodySummary.appendChild(tr);
             });
 
-            // Gelir tablosu (Detaylı)
-            const tbodyIncome = document.querySelector('#rawIncomeTable tbody');
-            tbodyIncome.innerHTML = '';
+            // Render Raw Income
+            const incomeBody = document.querySelector('#rawIncomeTable tbody');
+            incomeBody.innerHTML = '';
             data.raw_income.forEach(item => {
                 const tr = document.createElement('tr');
-                const rate = data.pos_rate || 0;
-                const commission = (item.card_amount || 0) * (rate / 100);
-                const net = (item.total_amount || 0) - commission;
-                
+                const commission = item.card_amount * (data.pos_rate / 100);
+                const net = item.total_amount - commission;
                 tr.innerHTML = `
                     <td>${new Date(item.date).toLocaleDateString('tr-TR')}</td>
-                    <td>${item.vehicle_count} Ara\u00e7</td>
+                    <td>${item.vehicle_count}</td>
                     <td>${App.formatCurrency(item.total_amount)}</td>
-                    <td class="text-danger">${App.formatCurrency(commission)}</td>
+                    <td><small class="text-danger">-${App.formatCurrency(commission)}</small></td>
                     <td class="text-success">${App.formatCurrency(net)}</td>
                     <td>${App.formatCurrency(item.cash_amount)}</td>
                     <td>${App.formatCurrency(item.card_amount)}</td>
-                    <td>${item.note || '-'}</td>
+                    <td>${App.formatCurrency(item.iban_amount || 0)}</td>
+                    <td style="font-size:0.8rem; color:var(--text-gray)">${item.note || '-'}</td>
                 `;
-                tbodyIncome.appendChild(tr);
+                incomeBody.appendChild(tr);
             });
 
             // Gider tablosu (Detaylı)
