@@ -1,5 +1,5 @@
 const Dashboard = {
-    currentRange: 'daily',
+    currentRange: 'monthly',
 
     async init() {
         this.setupFilters();

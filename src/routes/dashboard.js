@@ -24,20 +24,22 @@ router.get('/stats', (req, res) => {
                     COALESCE(SUM(cash_amount), 0) as total_cash,
                     COALESCE(SUM(iban_amount), 0) as total_iban
                 FROM income 
-                WHERE date(date) BETWEEN date(?) AND date(?) AND is_deleted = 0
+                WHERE date(date) BETWEEN date(?) AND date(?) 
+                AND (is_deleted = 0 OR is_deleted IS NULL)
             `).get(f, t);
 
             // Giderler
             const expense = db.prepare(`
                 SELECT COALESCE(SUM(amount), 0) as total FROM expense 
-                WHERE date(date) BETWEEN date(?) AND date(?) AND is_deleted = 0
+                WHERE date(date) BETWEEN date(?) AND date(?) 
+                AND (is_deleted = 0 OR is_deleted IS NULL)
             `).get(f, t);
 
             // Bu aralıkta bankadan tahsil edilen POS tutarları
             const posCollectedQueryResult = db.prepare(`
                 SELECT COALESCE(SUM(pos_collected_amount), 0) as total 
                 FROM income 
-                WHERE is_deleted = 0 
+                WHERE (is_deleted = 0 OR is_deleted IS NULL)
                 AND date(pos_collected_date) BETWEEN date(?) AND date(?)
             `).get(f, t);
             
@@ -134,7 +136,7 @@ router.get('/recent', (req, res) => {
         const income = db.prepare(`
             SELECT date, 'income' as type, 'Araç Girişi' as description, total_amount as amount, created_at
             FROM income
-            WHERE is_deleted = 0
+            WHERE (is_deleted = 0 OR is_deleted IS NULL)
             ORDER BY date DESC, created_at DESC
             LIMIT 5
         `).all();
@@ -142,7 +144,7 @@ router.get('/recent', (req, res) => {
         const expenses = db.prepare(`
             SELECT date, 'expense' as type, category || ': ' || description as description, amount, created_at
             FROM expense
-            WHERE is_deleted = 0
+            WHERE (is_deleted = 0 OR is_deleted IS NULL)
             ORDER BY date DESC, created_at DESC
             LIMIT 5
         `).all();
