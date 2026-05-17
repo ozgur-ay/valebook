@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database');
+const logger = require('../utils/logger');
+
 
 /**
  * Dashboard için Birleşik Özet Veri API
@@ -139,7 +141,7 @@ router.get('/summary', (req, res) => {
         });
 
     } catch (error) {
-        console.error('[Dashboard Summary Error]:', error);
+        logger.error('DASHBOARD_SUMMARY_ERROR', { query: req.query }, error);
         res.status(500).json({ error: error.message });
     }
 });

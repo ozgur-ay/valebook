@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database');
+const logger = require('../utils/logger');
+
 
 /**
  * Gelir işlemleri API rotaları.
@@ -36,6 +38,7 @@ router.get('/', (req, res) => {
         const rows = db.prepare(baseQuery).all(...params);
         res.json(rows);
     } catch (error) {
+        logger.error('INCOME_ROUTE_ERROR', { url: req.url, method: req.method, body: req.body, query: req.query }, error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -46,6 +49,7 @@ router.get('/last', (req, res) => {
         const row = db.prepare('SELECT * FROM income WHERE is_deleted = 0 ORDER BY created_at DESC LIMIT 1').get();
         res.json(row || {});
     } catch (error) {
+        logger.error('INCOME_ROUTE_ERROR', { url: req.url, method: req.method, body: req.body, query: req.query }, error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -61,6 +65,7 @@ router.post('/undo', (req, res) => {
             res.status(404).json({ error: 'Geri alınacak işlem kalmadı.' });
         }
     } catch (error) {
+        logger.error('INCOME_ROUTE_ERROR', { url: req.url, method: req.method, body: req.body, query: req.query }, error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -76,6 +81,7 @@ router.post('/redo', (req, res) => {
             res.status(404).json({ error: 'İleri alınacak işlem kalmadı.' });
         }
     } catch (error) {
+        logger.error('INCOME_ROUTE_ERROR', { url: req.url, method: req.method, body: req.body, query: req.query }, error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -86,6 +92,7 @@ router.get('/debug-db', (req, res) => {
         const rows = db.prepare('SELECT id, date, payment_method, pos_status, card_amount, pos_collected_amount FROM income WHERE is_deleted = 0 ORDER BY id DESC LIMIT 50').all();
         res.json(rows);
     } catch (error) {
+        logger.error('INCOME_ROUTE_ERROR', { url: req.url, method: req.method, body: req.body, query: req.query }, error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -114,6 +121,7 @@ router.get('/pending-pos', (req, res) => {
         const rows = db.prepare(query).all(...params);
         res.json(rows);
     } catch (error) {
+        logger.error('INCOME_ROUTE_ERROR', { url: req.url, method: req.method, body: req.body, query: req.query }, error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -199,6 +207,7 @@ router.post('/collect-all-pos', (req, res) => {
 
         res.json({ success: true });
     } catch (error) {
+        logger.error('INCOME_ROUTE_ERROR', { url: req.url, method: req.method, body: req.body, query: req.query }, error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -236,6 +245,7 @@ router.post('/undo-collection', (req, res) => {
 
         res.json({ success: true });
     } catch (error) {
+        logger.error('INCOME_ROUTE_ERROR', { url: req.url, method: req.method, body: req.body, query: req.query }, error);
         res.status(500).json({ error: error.message });
     }
 });

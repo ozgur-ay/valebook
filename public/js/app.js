@@ -134,86 +134,88 @@ const App = {
         overlay.id = 'globalUpdateOverlay';
         overlay.className = 'update-overlay';
         overlay.innerHTML = `
+            <div class="particles"></div>
             <div class="update-box">
                 <h2 id="updateTitle">SİSTEM GÜNCELLENİYOR</h2>
-                <div class="progress-text" id="updateProgressText">0%</div>
-                <div class="progress-container">
-                    <div class="progress-fill" id="updateProgressFill"></div>
+                <div class="quantum-ring-container">
+                    <svg class="quantum-ring" viewBox="0 0 300 300">
+                        <circle class="quantum-circle-bg" cx="150" cy="150" r="140"></circle>
+                        <circle id="quantumProgressCircle" class="quantum-circle-progress" cx="150" cy="150" r="140"></circle>
+                    </svg>
+                    <div class="progress-text" id="updateProgressText">0%</div>
                 </div>
-                <p id="updateText">LÜTFEN BEKLEYİNİZ...</p>
+                <p id="updateText">BAĞLANTI KURULUYOR...</p>
             </div>
+            <div class="log-stream" id="updateLogStream"></div>
         `;
         document.body.appendChild(overlay);
     },
 
-    closeFeedbackModal() {
-        const modal = document.getElementById('feedbackModal');
-        if (modal) {
-            modal.classList.remove('active');
-            setTimeout(() => modal.remove(), 300);
-        }
-    },
-
-    async sendFeedback() {
-        const text = document.getElementById('feedbackText').value;
-        const btn = document.querySelector('#feedbackModal .btn-primary');
-        if (!text.trim()) {
-            this.showToast(LANG.errEmpty, 'warning');
-            return;
-        }
-
-        btn.disabled = true;
-        btn.innerText = LANG.btnSending;
-
-        try {
-            await this.fetchAPI('/feedback', {
-                method: 'POST',
-                body: JSON.stringify({
-                    message: text,
-                    type: LANG.type,
-                    timestamp: new Date().toISOString(),
-                    version: document.getElementById('versionDisplay')?.innerText || 'Unknown'
-                })
-            });
-            this.showToast(LANG.successMsg);
-            this.closeFeedbackModal();
-        } catch (error) {
-            this.showToast(LANG.errServer, 'danger');
-            btn.disabled = false;
-            btn.innerText = LANG.btnSend;
+    addLogEntry(message, isActive = false) {
+        const stream = document.getElementById('updateLogStream');
+        if (!stream) return;
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${isActive ? 'active' : ''}`;
+        const time = new Date().toLocaleTimeString('tr-TR', { hour12: false });
+        entry.innerText = `[${time}] ${message}`;
+        stream.appendChild(entry);
+        stream.scrollTop = stream.scrollHeight;
+        
+        // Max 20 log sacla
+        while (stream.children.length > 20) {
+            stream.removeChild(stream.firstChild);
         }
     },
 
     listenForUpdates() {
         if (window.electron && window.electron.onUpdateStatus) {
+            let lastLogPercent = -1;
             window.electron.onUpdateStatus((status) => {
                 const overlay = document.getElementById('globalUpdateOverlay');
-                const fill = document.getElementById('updateProgressFill');
+                const ring = document.getElementById('quantumProgressCircle');
                 const text = document.getElementById('updateProgressText');
                 const title = document.getElementById('updateTitle');
                 const desc = document.getElementById('updateText');
 
-                if (!overlay || !fill || !text || !title || !desc) return;
+                if (!overlay || !ring || !text || !title || !desc) return;
 
                 if (status.type === 'available' || status.type === 'progress') {
                     overlay.classList.add('active');
                     const percent = status.percent ? Math.floor(status.percent) : 0;
-                    fill.style.width = percent + '%';
-                    text.innerText = percent + '%';
-                    title.innerText = 'SİSTEM GÜNCELLENİYOR';
                     
+                    // Circular progress logic: offset = 880 - (percent / 100 * 880)
+                    const offset = 880 - (percent / 100 * 880);
+                    ring.style.strokeDashoffset = offset;
+                    text.innerText = percent + '%';
+                    
+                    title.innerText = 'SİSTEM GÜNCELLENİYOR';
                     const vInfo = status.versions ? `v${status.versions.current} → v${status.versions.latest}` : '';
-                    desc.innerText = `${vInfo} | DOSYALAR İNDİRİLİYOR, LÜTFEN BEKLEYİNİZ...`;
+                    desc.innerText = `${vInfo} | VERİ PAKETLERİ SENKRONİZE EDİLİYOR...`;
+
+                    // Teknik logları tetikle
+                    if (percent > lastLogPercent) {
+                        if (percent === 0) this.addLogEntry('ESTABLISHING_SECURE_CONNECTION...');
+                        if (percent === 5) this.addLogEntry('HANDSHAKE_SUCCESSFUL...');
+                        if (percent === 15) this.addLogEntry('RETRIEVING_METADATA_MANIFEST...');
+                        if (percent % 20 === 0 && percent > 0) this.addLogEntry(`DOWNLOADING_CHUNK_${percent/20}_OF_5...`, true);
+                        if (percent === 90) this.addLogEntry('VERIFYING_INTEGRITY_CHECKSUM...');
+                        lastLogPercent = percent;
+                    }
+
                 } else if (status.type === 'downloaded') {
                     overlay.classList.add('active');
-                    fill.style.width = '100%';
+                    ring.style.strokeDashoffset = 0;
                     text.innerText = '100%';
                     title.innerText = 'YÜKLEME HAZIR';
-                    desc.innerText = 'GÜNCELLEME BAŞARIYLA İNDİRİLDİ, SİSTEM YENİDEN BAŞLATILIYOR...';
+                    title.classList.add('glitch-text');
+                    desc.innerText = 'GÜNCELLEME TAMAMLANDI. SİSTEM YENİDEN BAŞLATILIYOR...';
+                    this.addLogEntry('FINALIZING_INSTALLATION...', true);
+                    this.addLogEntry('DEPLOYING_UPDATED_BINARY...');
+                    this.addLogEntry('SYSTEM_REBOOT_TRIGGERED.');
                 } else if (status.type === 'error') {
-                    // Hatayı sadece toast olarak göster, overlay'i kapat
                     this.showToast('Güncelleme hatası: ' + status.message, 'danger');
                     overlay.classList.remove('active');
+                    this.addLogEntry('CRITICAL_ERROR: ' + status.message);
                 } else if (status.type === 'idle' || status.type === 'not-available' || status.type === 'checking') {
                     overlay.classList.remove('active');
                 }
@@ -230,13 +232,12 @@ const App = {
         }
     },
 
-    // Versiyonu yükle (package.json'dan veya sabit)
+    // Versiyonu yükle
     async loadVersion() {
         const el = document.getElementById('versionDisplay');
         if (el) {
             try {
-                const res = await fetch('/api/update/version');
-                const data = await res.json();
+                const data = await this.fetchAPI('/update/version');
                 el.innerText = 'ValeBook v' + (data.current || 'X.X.X');
             } catch (e) {
                 el.innerText = 'ValeBook';

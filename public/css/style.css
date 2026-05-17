@@ -617,18 +617,19 @@ input[type="date"] {
     border-top: 1px solid var(--border-glass);
 }
 
-/* Global Update Overlay - Tam Ekran İmmersif */
+/* Hacker Mode Update Overlay */
 .update-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: #000; /* Tam siyah arka plan */
+    background: radial-gradient(circle at center, #0a0f1d 0%, #000 100%);
     z-index: 999999;
     display: flex;
     align-items: center;
     justify-content: center;
     visibility: hidden;
     opacity: 0;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
 }
 
 .update-overlay.active {
@@ -636,53 +637,144 @@ input[type="date"] {
     opacity: 1;
 }
 
+/* Background Particles */
+.particles {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    background-image: radial-gradient(circle, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: particlesMove 100s linear infinite;
+}
+
+@keyframes particlesMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 1000px 1000px; }
+}
+
 .update-box {
+    position: relative;
     text-align: center;
     width: 100%;
-    max-width: 800px;
+    max-width: 900px;
+    z-index: 2;
 }
 
-.update-box h2 {
-    font-size: 2.5rem;
-    color: var(--primary);
-    margin-bottom: 2rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
+/* Quantum Ring (Circular Progress) */
+.quantum-ring-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 0 auto 3rem;
 }
 
-.update-box p {
-    color: var(--text-gray);
-    font-size: 1.25rem;
-    margin-bottom: 4rem;
-}
-
-.progress-container {
-    background: rgba(255, 255, 255, 0.05);
-    height: 4px; /* İnce ve modern bir çizgi */
-    border-radius: 2px;
-    overflow: hidden;
-    margin-bottom: 3rem;
-    width: 80%;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.progress-fill {
+.quantum-ring {
+    transform: rotate(-90deg);
+    width: 100%;
     height: 100%;
-    background: var(--primary);
-    width: 0%;
-    box-shadow: 0 0 30px var(--primary-glow);
-    transition: width 0.3s ease;
+}
+
+.quantum-circle-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.03);
+    stroke-width: 8;
+}
+
+.quantum-circle-progress {
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 880; /* 2 * PI * R (140) */
+    stroke-dashoffset: 880;
+    transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: drop-shadow(0 0 10px var(--primary-glow));
 }
 
 .progress-text {
-    font-size: 8rem; /* DEVASA YÜZDE GÖSTERİMİ */
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 5rem;
     font-weight: 900;
     color: white;
     font-family: 'Inter', sans-serif;
-    letter-spacing: -0.05em;
-    line-height: 1;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.update-box h2 {
+    font-size: 1.5rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4em;
+    animation: pulseGlow 2s infinite alternate;
+}
+
+@keyframes pulseGlow {
+    from { opacity: 0.6; filter: brightness(1); }
+    to { opacity: 1; filter: brightness(1.5); }
+}
+
+#updateText {
+    color: var(--text-gray);
+    font-size: 0.875rem;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.1em;
+    margin-bottom: 2rem;
+}
+
+/* Technical Log Stream */
+.log-stream {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    width: 350px;
+    height: 180px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 15px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    color: #4ade80; /* Teal/Green */
+    overflow: hidden;
+    text-align: left;
+    backdrop-filter: blur(10px);
+    z-index: 3;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.log-entry {
+    margin-bottom: 4px;
+    white-space: nowrap;
+    opacity: 0.7;
+    animation: fadeInLog 0.3s ease forwards;
+}
+
+@keyframes fadeInLog {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 0.7; transform: translateY(0); }
+}
+
+.log-entry.active {
+    opacity: 1;
+    color: #fff;
+    text-shadow: 0 0 5px #4ade80;
+}
+
+/* Glitch Animation */
+.glitch-text {
+    animation: glitch 1s infinite alternate;
+}
+
+@keyframes glitch {
+    0% { transform: translate(0); text-shadow: -2px 0 #ff00c1, 2px 0 #00fff9; }
+    25% { transform: translate(-2px, 2px); }
+    50% { transform: translate(2px, -2px); text-shadow: 2px 0 #ff00c1, -2px 0 #00fff9; }
+    100% { transform: translate(0); }
 }
 
 /* --- Segmented Control --- */

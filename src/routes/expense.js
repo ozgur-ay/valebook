@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database');
+const logger = require('../utils/logger');
+
 
 /**
  * Gider işlemleri API rotaları.
@@ -31,6 +33,7 @@ router.get('/', (req, res) => {
         const rows = db.prepare(baseQuery).all(...params);
         res.json(rows);
     } catch (error) {
+        logger.error('EXPENSE_ROUTE_ERROR', { url: req.url, method: req.method, body: req.body, query: req.query }, error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -41,6 +44,7 @@ router.get('/last', (req, res) => {
         const row = db.prepare('SELECT * FROM expense WHERE is_deleted = 0 ORDER BY created_at DESC LIMIT 1').get();
         res.json(row || {});
     } catch (error) {
+        logger.error('EXPENSE_ROUTE_ERROR', { url: req.url, method: req.method, body: req.body, query: req.query }, error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -56,6 +60,7 @@ router.post('/undo', (req, res) => {
             res.status(404).json({ error: 'İşlem yok' });
         }
     } catch (error) {
+        logger.error('EXPENSE_ROUTE_ERROR', { url: req.url, method: req.method, body: req.body, query: req.query }, error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -71,6 +76,7 @@ router.post('/redo', (req, res) => {
             res.status(404).json({ error: 'İşlem yok' });
         }
     } catch (error) {
+        logger.error('EXPENSE_ROUTE_ERROR', { url: req.url, method: req.method, body: req.body, query: req.query }, error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -109,6 +115,7 @@ router.put('/:id', (req, res) => {
         stmt.run(date, category, description, amount, payment_method, document_no, note, id);
         res.json({ success: true });
     } catch (error) {
+        logger.error('EXPENSE_ROUTE_ERROR', { url: req.url, method: req.method, body: req.body, query: req.query }, error);
         res.status(500).json({ error: error.message });
     }
 });
