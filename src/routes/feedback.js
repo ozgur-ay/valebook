@@ -21,7 +21,13 @@ router.post('/', async (req, res) => {
         const text = `🚨 *ValeBook Feedback* 🚨\n\n*Type:* ${type || 'General'}\n*User:* ${user || 'Unknown'}\n*Message:*\n${message}`;
 
         const errorLogPath = path.join(__dirname, '../../valebook-error.log');
-        let hasLogFile = fs.existsSync(errorLogPath);
+        let logContent = `--- ValeBook Diagnostic Log ---\n Tarih: ${new Date().toISOString()}\n İşletim Sistemi: ${process.platform} ${process.arch}\n Node Sürümü: ${process.version}\n Açık Kalma Süresi: ${process.uptime()} sn\n\n`;
+        
+        if (fs.existsSync(errorLogPath)) {
+            logContent += `--- CRITICAL ERRORS ---\n${fs.readFileSync(errorLogPath, 'utf8')}`;
+        } else {
+            logContent += `--- CRITICAL ERRORS ---\nBu oturumda tespit edilen kritik bir hata (crash) bulunmamaktadır.\n`;
+        }
 
         let telegramPromises = [];
 
@@ -52,18 +58,17 @@ router.post('/', async (req, res) => {
             );
         }
 
-        if (hasLogFile) {
-            const logData = new FormData();
-            logData.append('chat_id', TELEGRAM_CHAT_ID);
-            if (TELEGRAM_THREAD_ID) logData.append('message_thread_id', TELEGRAM_THREAD_ID);
-            logData.append('caption', "📄 ValeBook Auto Error Log");
-            const logBlob = new Blob([fs.readFileSync(errorLogPath)]);
-            logData.append('document', logBlob, 'valebook-error.log');
+        // HER ZAMAN LOG GÖNDER (Diagnostic veya Crash)
+        const logData = new FormData();
+        logData.append('chat_id', TELEGRAM_CHAT_ID);
+        if (TELEGRAM_THREAD_ID) logData.append('message_thread_id', TELEGRAM_THREAD_ID);
+        logData.append('caption', "📄 ValeBook Sistem Raporu");
+        const logBlob = new Blob([Buffer.from(logContent, 'utf8')]);
+        logData.append('document', logBlob, 'valebook-diagnostic.log');
 
-            telegramPromises.push(
-                fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument`, { method: 'POST', body: logData })
-            );
-        }
+        telegramPromises.push(
+            fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument`, { method: 'POST', body: logData })
+        );
 
         const responses = await Promise.all(telegramPromises);
         const data = await responses[0].json();
