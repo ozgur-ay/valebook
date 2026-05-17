@@ -1,6 +1,22 @@
 const { app, BrowserWindow, dialog, shell, ipcMain, session } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const { autoUpdater } = require('electron-updater');
+
+// Global Error Logging - Save errors before app crashes
+process.on('uncaughtException', (err) => {
+    const errorLogPath = path.join(__dirname, 'valebook-error.log');
+    const logMessage = `\n[${new Date().toISOString()}] UNCAUGHT EXCEPTION: ${err.message}\n${err.stack}`;
+    fs.appendFileSync(errorLogPath, logMessage);
+    console.error('Critical Error (Logged):', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    const errorLogPath = path.join(__dirname, 'valebook-error.log');
+    const logMessage = `\n[${new Date().toISOString()}] UNHANDLED REJECTION: ${reason}\n`;
+    fs.appendFileSync(errorLogPath, logMessage);
+    console.error('Unhandled Promise Rejection (Logged):', reason);
+});
 
 // Express sunucusunu başlatıyoruz.
 // İçinde yer alan 'open' (tarayıcı açma) paketi electron içindeysek engellendi.

@@ -21,6 +21,7 @@ app.use('/api/dashboard', require('./src/routes/dashboard'));
 app.use('/api/reports', require('./src/routes/reports'));
 app.use('/api/settings', require('./src/routes/settings'));
 app.use('/api/update', require('./src/routes/update'));
+app.use('/api/feedback', require('./src/routes/feedback'));
 
 // --- Ana Sayfa ---
 app.get('*', (req, res) => {

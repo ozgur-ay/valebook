@@ -2,6 +2,21 @@
  * ValeBook Ortak Uygulama Mantığı (JS).
  */
 
+const LANG = {
+    feedbackBtn: '\ud83d\udc1e \u00d6neri/Hata Bildir',
+    modalTitle: 'Sistem Geri Bildirim Formu',
+    modalDesc: 'L\u00fctfen ya\u015fad\u0131\u011f\u0131n\u0131z sorunu veya \u00f6nerinizi detayl\u0131ca yaz\u0131n\u0131z. (Sistem hata raporlar\u0131 otomatik olarak eklenecektir).',
+    placeholder: '\u00d6rn: X sayfas\u0131na girince sistem donuyor...',
+    btnCancel: '\u0130ptal',
+    btnSend: 'G\u00f6nder',
+    btnSending: 'G\u00f6nderiliyor...',
+    errEmpty: 'L\u00fctfen bir mesaj yaz\u0131n',
+    successMsg: 'Bildiriminiz ba\u015far\u0131yla iletildi.',
+    errPrefix: 'Hata: ',
+    errServer: 'Sunucu ile ileti\u015fim kurulamad\u0131.',
+    type: 'Kullan\u0131c\u0131 Geri Bildirimi'
+};
+
 const App = {
     // Ortak ayarlar
     config: {
@@ -12,7 +27,72 @@ const App = {
     init() {
         this.displayCurrentDate();
         this.loadVersion();
+        this.setupFeedbackModal();
     },
+
+    setupFeedbackModal() {
+        // Fab Button (Floating Action Button) eklentisi
+        const btn = document.createElement('button');
+        btn.className = 'feedback-fab-btn';
+        btn.innerHTML = LANG.feedbackBtn;
+        btn.onclick = () => document.getElementById('feedbackModal').classList.add('active');
+        document.body.appendChild(btn);
+
+        // Modal HTML eklentisi
+        const modalHtml = `
+            <div class="feedback-modal-overlay" id="feedbackModal">
+                <div class="feedback-modal-content">
+                    <div class="feedback-modal-header">
+                        <h2>${LANG.modalTitle}</h2>
+                        <button class="close-btn" onclick="document.getElementById('feedbackModal').classList.remove('active')">&times;</button>
+                    </div>
+                    <div class="feedback-modal-body">
+                        <p>${LANG.modalDesc}</p>
+                        <textarea id="feedbackText" placeholder="${LANG.placeholder}" rows="5"></textarea>
+                    </div>
+                    <div class="feedback-modal-footer">
+                        <button class="btn btn-secondary" onclick="document.getElementById('feedbackModal').classList.remove('active')">${LANG.btnCancel}</button>
+                        <button class="btn btn-primary" id="sendFeedbackBtn">${LANG.btnSend}</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        // Gönder işlevi
+        document.getElementById('sendFeedbackBtn').onclick = async () => {
+            const text = document.getElementById('feedbackText').value.trim();
+            if(!text) return this.showToast(LANG.errEmpty, 'error');
+
+            const btnSend = document.getElementById('sendFeedbackBtn');
+            btnSend.disabled = true;
+            btnSend.innerText = LANG.btnSending;
+
+            try {
+                // native fetch for form logic if needed, but since our server expects json for message
+                const res = await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text, type: LANG.type })
+                });
+                
+                const data = await res.json();
+                if(data.success) {
+                    this.showToast(LANG.successMsg, 'success');
+                    document.getElementById('feedbackModal').classList.remove('active');
+                    document.getElementById('feedbackText').value = '';
+                } else {
+                    this.showToast(LANG.errPrefix + data.message, 'error');
+                }
+            } catch(e) {
+                this.showToast(LANG.errServer, 'error');
+            } finally {
+                btnSend.disabled = false;
+                btnSend.innerText = LANG.btnSend;
+            }
+        };
+    },
+
 
     // Tarih gösterimi
     displayCurrentDate() {
