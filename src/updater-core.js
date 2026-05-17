@@ -32,15 +32,16 @@ async function checkUpdateViaTags(mainWindow, showDialog = false) {
             });
 
             if (showDialog) {
-                const { dialog, shell } = require('electron');
+                const { dialog } = require('electron');
                 dialog.showMessageBox(mainWindow, {
                     type: 'info',
                     title: 'Yeni Güncelleme Mevcut',
-                    message: `Yeni bir ValeBook sürümü (v${latestTag}) mevcut! Şimdi GitHub üzerinden indirmek ister misiniz?`,
-                    buttons: ['İndir (GitHub)', 'Daha Sonra']
+                    message: `Yeni bir ValeBook sürümü (v${latestTag}) mevcut! Şimdi indirip kurmak ister misiniz?`,
+                    buttons: ['Evet, Şimdi İndir ve Kur', 'Daha Sonra']
                 }).then((result) => {
                     if (result.response === 0) {
-                        shell.openExternal('https://github.com/ozgur-ay/valebook/releases/latest');
+                        const downloadUrl = `https://github.com/ozgur-ay/valebook/releases/download/v${latestTag}/ValeBook-Setup-${latestTag}.exe`;
+                        mainWindow.webContents.downloadURL(downloadUrl);
                     }
                 });
             }

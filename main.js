@@ -59,20 +59,36 @@ function createWindow() {
         }
     });
 
-    // Otomatik Dosya Açma (Download tamamlanınca açar)
+    // Otomatik Dosya Açma (Download tamamlanınca açar) ve İlerleme Bildirimi
     session.defaultSession.on('will-download', (event, item, webContents) => {
         item.on('updated', (event, state) => {
             if (state === 'interrupted') {
                 console.log('İndirme kesildi');
+                mainWindow.webContents.send('update-status', { type: 'error', message: 'İndirme kesildi.' });
+            } else if (state === 'progressing') {
+                if (!item.isPaused()) {
+                    const percent = Math.floor((item.getReceivedBytes() / item.getTotalBytes()) * 100);
+                    mainWindow.webContents.send('update-status', { 
+                        type: 'progress', 
+                        percent: percent,
+                        bytesPerSecond: 0 
+                    });
+                }
             }
         });
         item.once('done', (event, state) => {
             if (state === 'completed') {
                 const filePath = item.getSavePath();
                 console.log('İndirme tamamlandı:', filePath);
-                shell.openPath(filePath);
+                mainWindow.webContents.send('update-status', { type: 'downloaded' });
+                
+                // Kapamadan önce kullanıcıya bilgi vereceksek diye ufak bekleme
+                setTimeout(() => {
+                    shell.openPath(filePath);
+                }, 1000);
             } else {
                 console.log(`İndirme başarısız: ${state}`);
+                mainWindow.webContents.send('update-status', { type: 'error', message: 'İndirme başarısız oldu.' });
             }
         });
     });
