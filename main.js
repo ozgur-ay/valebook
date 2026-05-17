@@ -86,10 +86,12 @@ function createWindow() {
                 console.log('İndirme tamamlandı:', filePath);
                 mainWindow.webContents.send('update-status', { type: 'downloaded' });
                 
-                // Kapamadan önce kullanıcıya bilgi vereceksek diye ufak bekleme
+                // Kapamadan önce kullanıcıya kısa bir saniye ver, sonra kurulumla birlikte zorla kapat
                 setTimeout(() => {
-                    shell.openPath(filePath);
-                }, 1000);
+                    shell.openPath(filePath).then(() => {
+                        app.quit();
+                    });
+                }, 1500);
             } else {
                 console.log(`İndirme başarısız: ${state}`);
                 mainWindow.webContents.send('update-status', { type: 'error', message: 'İndirme başarısız oldu.' });
@@ -165,15 +167,9 @@ function initAutoUpdater() {
         console.log('Güncelleme indirildi:', info.version);
         updaterState = { type: 'downloaded', version: info.version };
         if (mainWindow) mainWindow.webContents.send('update-status', updaterState);
-        dialog.showMessageBox(mainWindow, {
-            type: 'info',
-            title: 'ValeBook Güncelleme',
-            message: `Yeni sürüm (v${info.version}) hazır! Kurulumun tamamlanması için uygulama şimdi kapatılıp yeniden başlatılacak.`,
-            buttons: ['Şimdi Güncelle ve Başlat']
-        }).then(() => {
-            // quitAndInstall çağrısı öncesi tüm pencereleri kapatmaya zorla
-            setImmediate(() => autoUpdater.quitAndInstall(false, true));
-        });
+        
+        // Kullanıcıya hiçbir şey sormadan, arka planda kendisi zorla kapatıp versiyonu günceller!
+        setImmediate(() => autoUpdater.quitAndInstall(false, true));
     });
 
     // Program her açıldığında kontrol et - Native check devre dışı (latest.yml 404 hatasını önlemek için)
