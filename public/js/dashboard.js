@@ -7,10 +7,25 @@ const Dashboard = {
     },
 
     async loadAll() {
-        const range = this.getRangeDates(this.currentRange);
-        await this.loadStats(range);
-        await this.loadRecentActivity();
-        await this.initCharts();
+        try {
+            const range = this.getRangeDates(this.currentRange);
+            const url = `/dashboard/summary?from=${range.from}&to=${range.to}`;
+            const data = await App.fetchAPI(url);
+            console.log('[Dashboard Summary]:', data);
+
+            // 1. Stats (Gelişmiş kartlar)
+            this.renderStats(data.stats, data.comparison, data.pending_pos, data.total_pending_commission);
+
+            // 2. Charts (Grafikler)
+            this.renderIncomeChart(data.charts.weeklyIncome);
+            this.renderExpenseChart(data.charts.categoryExpenses);
+
+            // 3. Son İşlemler
+            this.renderRecentActivity(data.recent);
+
+        } catch (error) {
+            console.error('Dashboard Load Error:', error);
+        }
     },
 
     setupFilters() {
@@ -84,35 +99,52 @@ const Dashboard = {
         return { from, to, compareFrom: cFrom, compareTo: cTo };
     },
 
-    async loadStats(range) {
+    renderStats(cur, prev, pending_pos, total_pending_commission) {
         try {
-            const url = `/dashboard/stats?from=${range.from}&to=${range.to}&compareFrom=${range.compareFrom}&compareTo=${range.compareTo}`;
-            const data = await App.fetchAPI(url);
-            console.log('[Dashboard Stats]:', data);
-            
-            const cur = data.current;
-            const prev = data.comparison || { vehicle_count: 0, total_income: 0, cash_total: 0, total_expense: 0 };
+            if (!prev) prev = { vehicle_count: 0, total_income: 0, cash_total: 0, total_expense: 0 };
 
             // Değerleri bas
             document.getElementById('todayVehicleCount').innerText = cur.vehicle_count;
             document.getElementById('cashInHand').innerText = App.formatCurrency(cur.cash_total);
             document.getElementById('todayTotalExpense').innerText = App.formatCurrency(cur.total_expense);
-            document.getElementById('pendingBank').innerText = App.formatCurrency(data.pending_pos);
+            document.getElementById('pendingBank').innerText = App.formatCurrency(pending_pos);
 
             // Trendleri hesapla ve göster
             this.renderTrend('trendVehicle', cur.vehicle_count, prev.vehicle_count);
             this.renderTrend('trendCash', cur.cash_total, prev.cash_total);
-            this.renderTrend('trendExpense', cur.total_expense, prev.total_expense, true); // Gider artışı kötüdür
+            this.renderTrend('trendExpense', cur.total_expense, prev.total_expense, true);
 
             // Banka notu
             const n = document.getElementById('pendingCommissionNote');
-            if (n) n.innerText = `(Tahmini Kesinti: ${App.formatCurrency(data.total_pending_commission)})`;
+            if (n) n.innerText = `(Tahmini Kesinti: ${App.formatCurrency(total_pending_commission)})`;
 
             // Kasa renk
             document.getElementById('cashInHand').style.color = cur.cash_total < 0 ? 'var(--danger)' : '#10b981';
 
         } catch (error) {
-            console.error('Stats error:', error);
+            console.error('Render Stats error:', error);
+        }
+    },
+
+    renderRecentActivity(recent) {
+        try {
+            const tbody = document.querySelector('#recentTransactionsTable tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            recent.forEach(item => {
+                const tr = document.createElement('tr');
+                const isInc = item.type === 'income';
+                tr.innerHTML = `
+                    <td>${new Date(item.date).toLocaleDateString('tr-TR')}</td>
+                    <td class="${isInc ? 'text-success' : 'text-danger'}">${isInc ? 'Gelir' : 'Gider'}</td>
+                    <td>${item.description}</td>
+                    <td class="${isInc ? 'text-success' : 'text-danger'}">${isInc ? '+' : '-'}${App.formatCurrency(item.amount)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (e) {
+            console.error('Render Recent error:', e);
         }
     },
 
@@ -146,37 +178,8 @@ const Dashboard = {
         el.classList.add(arrowClass, colorClass);
     },
 
-    async loadRecentActivity() {
-        try {
-            const recent = await App.fetchAPI('/dashboard/recent');
-            const tbody = document.querySelector('#recentTransactionsTable tbody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            recent.forEach(item => {
-                const tr = document.createElement('tr');
-                const isInc = item.type === 'income';
-                tr.innerHTML = `
-                    <td>${new Date(item.date).toLocaleDateString('tr-TR')}</td>
-                    <td class="${isInc ? 'text-success' : 'text-danger'}">${isInc ? 'Gelir' : 'Gider'}</td>
-                    <td>${item.description}</td>
-                    <td class="${isInc ? 'text-success' : 'text-danger'}">${isInc ? '+' : '-'}${App.formatCurrency(item.amount)}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        } catch (e) {}
-    },
-
     async initCharts() {
-        try {
-            const range = this.getRangeDates(this.currentRange);
-            const data = await App.fetchAPI(`/dashboard/charts?from=${range.from}&to=${range.to}`);
-            console.log('[Dashboard Charts]:', data);
-            this.renderIncomeChart(data.weeklyIncome);
-            this.renderExpenseChart(data.categoryExpenses);
-        } catch (e) {
-            console.error('Charts error:', e);
-        }
+        // Redundant - functionality moved to loadAll
     },
 
     renderIncomeChart(data) {

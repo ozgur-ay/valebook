@@ -8,6 +8,117 @@ const db = require('../database');
 
 // Bugünün özeti (Araç sayısı, toplam gelir, toplam gider)
 // Dinamik İstatistik Rotası (Tarih Aralıklı + Karşılaştırmalı)
+// BİRLEŞİK DASHBOARD ÖZETİ (Stats + Charts + Recent)
+// Bu rota tüm veriyi tek seferde döner, böylece senkronizasyon sorunu olmaz.
+router.get('/summary', (req, res) => {
+    try {
+        const { from, to } = req.query; // YYYY-MM-DD
+        if (!from || !to) return res.status(400).json({ error: 'Range required' });
+
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
+        // 1. Ham Verileri Çek (Tüm aralığı kapsayacak şekilde)
+        // Gelirler
+        const rawIncome = db.prepare(`
+            SELECT * FROM income 
+            WHERE (is_deleted = 0 OR is_deleted IS NULL)
+            AND date(date) BETWEEN date(?) AND date(?)
+        `).all(from, to);
+
+        // Giderler
+        const rawExpense = db.prepare(`
+            SELECT * FROM expense 
+            WHERE (is_deleted = 0 OR is_deleted IS NULL)
+            AND date(date) BETWEEN date(?) AND date(?)
+        `).all(from, to);
+
+        // Bankada bekleyenleri TÜM zamanlar için çek (Tarih bağımsız gerçek bakiye)
+        const pendingData = db.prepare(`
+            SELECT 
+                COALESCE(SUM(card_amount), 0) as pending_card,
+                COALESCE(SUM(pos_collected_amount), 0) as collected_part
+            FROM income 
+            WHERE (is_deleted = 0 OR is_deleted IS NULL) AND pos_status != 'collected'
+        `).get();
+
+        // 2. İstatistikleri JS ile Hesapla (Hata payı sıfır)
+        let stats = {
+            vehicle_count: 0,
+            total_income: 0,
+            cash_total: 0,
+            total_expense: 0
+        };
+
+        let totalCashIn = 0;
+        let totalIbanIn = 0;
+        let totalPosCollectedIn = 0;
+
+        rawIncome.forEach(row => {
+            stats.vehicle_count += (row.vehicle_count || 0);
+            stats.total_income += (row.total_amount || 0);
+            totalCashIn += (row.cash_amount || 0);
+            totalIbanIn += (row.iban_amount || 0);
+            totalPosCollectedIn += (row.pos_collected_amount || 0);
+        });
+
+        rawExpense.forEach(row => {
+            stats.total_expense += (row.amount || 0);
+        });
+
+        stats.cash_total = (totalCashIn + totalIbanIn + totalPosCollectedIn) - stats.total_expense;
+
+        // 3. Grafik Verilerini Hazırla (Günlere böl)
+        const days = [];
+        const start = new Date(from);
+        const end = new Date(to);
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            days.push(d.toISOString().split('T')[0]);
+        }
+
+        const chartIncome = days.map(day => {
+            const dayRows = rawIncome.filter(r => r.date === day);
+            return {
+                date: day,
+                cash: dayRows.reduce((sum, r) => sum + (r.cash_amount || 0), 0),
+                card: dayRows.reduce((sum, r) => sum + (r.card_amount || 0), 0)
+            };
+        });
+
+        const chartExpenses = rawExpense.reduce((acc, curr) => {
+            const existing = acc.find(a => a.category === curr.category);
+            if (existing) existing.total += curr.amount;
+            else acc.push({ category: curr.category, total: curr.amount });
+            return acc;
+        }, []).sort((a, b) => b.total - a.total);
+
+        // 4. Son İşlemler (Zaten aralık içindekiler)
+        const recent = [
+            ...rawIncome.map(r => ({ date: r.date, type: 'income', description: 'Araç Girişi', amount: r.total_amount, ts: r.created_at })),
+            ...rawExpense.map(e => ({ date: e.date, type: 'expense', description: `${e.category}: ${e.description}`, amount: e.amount, ts: e.created_at }))
+        ].sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 10);
+
+        // Commission calculation
+        const commissionSetting = db.prepare('SELECT value FROM settings WHERE key = "pos_commission_rate"').get();
+        const rate = commissionSetting ? parseFloat(commissionSetting.value) : 0;
+        const pendingNetVal = (pendingData.pending_card * (1 - rate / 100)) - pendingData.collected_part;
+
+        res.json({
+            stats,
+            charts: {
+                weeklyIncome: chartIncome,
+                categoryExpenses: chartExpenses
+            },
+            recent,
+            pending_pos: pendingNetVal,
+            total_pending_commission: pendingData.pending_card * (rate / 100)
+        });
+
+    } catch (error) {
+        console.error('[Dashboard Summary Error]:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 router.get('/stats', (req, res) => {
     try {
         const { from, to, compareFrom, compareTo } = req.query;
