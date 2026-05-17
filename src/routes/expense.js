@@ -16,7 +16,7 @@ router.get('/', (req, res) => {
                 'Günlük Toplam' as category,
                 'İşletme Giderleri Toplamı' as description,
                 SUM(amount) as amount,
-                GROUP_CONCAT(category || ':::' || description || ':::' || amount || ':::' || payment_method || ':::' || id, ';;;') as details
+                GROUP_CONCAT(category || ':::' || description || ':::' || amount || ':::' || payment_method || ':::' || id || ':::' || IFNULL(document_no, '') || ':::' || IFNULL(note, ''), ';;;') as details
             FROM expense 
             WHERE is_deleted = 0
         `;

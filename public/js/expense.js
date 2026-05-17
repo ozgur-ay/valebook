@@ -96,6 +96,7 @@ const Expense = {
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const editingId = document.getElementById('editingId').value;
             const data = {
                 date: document.getElementById('date').value,
                 category: document.getElementById('category').value,
@@ -107,15 +108,26 @@ const Expense = {
             };
 
             try {
-                await App.fetchAPI('/expense', {
-                    method: 'POST',
-                    body: JSON.stringify(data)
-                });
+                if (editingId) {
+                    await App.fetchAPI(`/expense/${editingId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(data)
+                    });
+                    App.showToast('Gider kaydı güncellendi.');
+                    document.getElementById('editingId').value = '';
+                    form.querySelector('button[type="submit"]').innerText = 'Kaydet';
+                } else {
+                    await App.fetchAPI('/expense', {
+                        method: 'POST',
+                        body: JSON.stringify(data)
+                    });
+                    App.showToast('Gider kaydı başarıyla eklendi.');
+                }
+                
                 await this.loadHistory();
-                App.showToast('Gider kaydı başarıyla eklendi.');
                 document.getElementById('amount').focus();
             } catch (error) {
-                App.showToast('Kayıt sırasında hata oluştu: ' + error.message, 'danger');
+                App.showToast('İşlem sırasında hata oluştu: ' + error.message, 'danger');
             }
         });
     },
@@ -139,14 +151,13 @@ const Expense = {
                     <td>${item.description}</td>
                     <td class="text-danger">-${App.formatCurrency(item.amount)}</td>
                     <td>
-                        <small style="color:var(--text-gray)">Detay için tıkla</small>
+                        <small style="color:var(--text-gray)">Detay ve Düzenleme</small>
                     </td>
                 `;
                 
                 tr.addEventListener('click', () => this.toggleDetails(tr, item));
                 tbody.appendChild(tr);
 
-                // Gizli detay satırı
                 const detailTr = document.createElement('tr');
                 detailTr.className = 'details-row';
                 detailTr.id = `details-${index}`;
@@ -164,7 +175,6 @@ const Expense = {
         const detailRow = document.getElementById(`details-${index}`);
         const isActive = row.classList.contains('active');
 
-        // Diğerlerini kapat
         document.querySelectorAll('.expandable-row').forEach(r => r.classList.remove('active'));
         document.querySelectorAll('.details-row').forEach(r => r.style.display = 'none');
 
@@ -173,8 +183,6 @@ const Expense = {
             detailRow.style.display = 'table-row';
             
             const container = detailRow.querySelector('.details-container');
-            
-            // Detayları parset
             const items = data.details ? data.details.split(';;;') : [];
             let detailHtml = `
                 <div class="details-content">
@@ -191,60 +199,52 @@ const Expense = {
                         <tbody>
             `;
 
-            // Elemanları parse edip kategoriye göre grupla
             const parsedItems = items.filter(i => i.trim()).map(itemStr => {
-                const [cat, desc, amt, method, id] = itemStr.split(':::');
-                return { cat, desc, amt: parseFloat(amt), method, id };
+                const [cat, desc, amt, method, id, docNo, note] = itemStr.split(':::');
+                return { cat, desc, amt: parseFloat(amt), method, id, docNo, note, date: data.date };
             });
 
-            const grouped = {};
             parsedItems.forEach(item => {
-                if(!grouped[item.cat]) grouped[item.cat] = [];
-                grouped[item.cat].push(item);
+                const methodText = item.method === 'cash' ? 'Nakit' : 'Kredi Kartı';
+                const rowObj = JSON.stringify(item).replace(/"/g, '&quot;');
+
+                detailHtml += `
+                    <tr>
+                        <td><span class="category-badge">${item.cat}</span></td>
+                        <td>${item.desc || '-'}</td>
+                        <td style="font-size: 0.75rem; color: var(--text-gray)">${methodText}</td>
+                        <td class="text-danger">-${App.formatCurrency(item.amt)}</td>
+                        <td>
+                            <button class="btn btn-sm" style="background:transparent; padding:2px;" onclick="Expense.startEdit('${rowObj}'); event.stopPropagation();">✏️</button>
+                            <button class="btn btn-sm" style="background:transparent; padding:2px;" onclick="Expense.deleteItem(${item.id}); event.stopPropagation();">🗑️</button>
+                        </td>
+                    </tr>
+                `;
             });
 
-            // Grupları dolaş ve tabloya yazdır
-            for (const [category, catItems] of Object.entries(grouped)) {
-                catItems.forEach(item => {
-                    const methodText = item.method === 'cash' ? 'Nakit' : 'Kredi Kartı';
-                    detailHtml += `
-                        <tr>
-                            <td><span class="category-badge">${item.cat}</span></td>
-                            <td>${item.desc || '-'}</td>
-                            <td style="font-size: 0.75rem; color: var(--text-gray)">${methodText}</td>
-                            <td class="text-danger">-${App.formatCurrency(item.amt)}</td>
-                            <td><button class="btn btn-sm" style="color:var(--danger); border:none; background:transparent;" onclick="Expense.deleteItem(${item.id}); event.stopPropagation();" title="Sil">🗑️</button></td>
-                        </tr>
-                    `;
-                });
-
-                // Birden fazla giriş varsa ARA TOPLAM satırı ekle
-                if (catItems.length > 1) {
-                    const subtotal = catItems.reduce((acc, curr) => acc + curr.amt, 0);
-                    detailHtml += `
-                        <tr style="background-color: rgba(255,255,255,0.03);">
-                            <td colspan="3" style="text-align: right; border:none; padding: 0.5rem 1rem; color: var(--text-gray);">
-                                <strong>${category} Ara Toplam:</strong>
-                            </td>
-                            <td class="text-danger" style="border:none; padding: 0.5rem 1rem;">
-                                <strong>-${App.formatCurrency(subtotal)}</strong>
-                            </td>
-                            <td style="border:none;"></td>
-                        </tr>
-                    `;
-                }
-            }
-
-            detailHtml += `
-                        </tbody>
-                    </table>
-                    <div style="margin-top: 1rem; display: flex; gap: 1rem; justify-content: flex-end;">
-                         <small style="color:var(--text-gray)">* Geçmiş giderleri daha ayrıntılı incelemek için Raporlar sayfasını kullanabilirsiniz.</small>
-                    </div>
-                </div>
-            `;
+            detailHtml += `</tbody></table></div>`;
             container.innerHTML = detailHtml;
         }
+    },
+
+    startEdit(itemStr) {
+        const item = JSON.parse(itemStr.replace(/&quot;/g, '"'));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        document.getElementById('editingId').value = item.id;
+        document.getElementById('date').value = item.date;
+        document.getElementById('category').value = item.cat;
+        document.getElementById('description').value = item.desc || '';
+        document.getElementById('amount').value = item.amt;
+        document.getElementById('paymentMethod').value = item.method;
+        document.getElementById('documentNo').value = item.docNo || '';
+        document.getElementById('note').value = item.note || '';
+
+        const btn = document.querySelector('#expenseForm button[type="submit"]');
+        btn.innerText = 'Güncelle';
+        btn.classList.replace('btn-primary', 'btn-warning');
+
+        App.showToast('Düzenleme modu aktif.', 'info');
     },
 
     async deleteItem(id) {
