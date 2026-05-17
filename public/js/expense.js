@@ -37,7 +37,7 @@ const Expense = {
         try {
             // Şu an için harcoded, ayarlar bitince oradan gelecek
             const categories = [
-                'Personel', 'Aidat', 'Bakım-Onarım', 'Vergi & SGK', 
+                'Yemek', 'Personel', 'Aidat', 'Bakım-Onarım', 'Vergi & SGK', 
                 'POS Komisyonu', 'Sigorta', 'Malzeme/Sarf', 'Diğer'
             ];
             const select = document.getElementById('category');
