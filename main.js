@@ -60,9 +60,9 @@ function createWindow() {
     });
 
     // Otomatik Dosya Açma (Download tamamlanınca açar) ve İlerleme Bildirimi
-    session.defaultSession.on('will-download', (event, item, webContents) => {
-        // İndirme penceresini (Save As) engelleyip doğrudan İndirilenler klasörüne kaydet
-        const downloadPath = path.join(app.getPath('downloads'), item.getFilename());
+    mainWindow.webContents.session.on('will-download', (event, item, webContents) => {
+        // İndirme penceresini (Save As) engelleyip doğrudan Temp klasörüne kaydet (İzin/Çakışma garantisi)
+        const downloadPath = path.join(app.getPath('temp'), `valebook_update_${Date.now()}.exe`);
         item.setSavePath(downloadPath);
 
         item.on('updated', (event, state) => {
