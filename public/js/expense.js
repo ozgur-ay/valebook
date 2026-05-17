@@ -185,13 +185,14 @@ const Expense = {
                                 <th>Açıklama</th>
                                 <th>Ödeme</th>
                                 <th>Tutar</th>
+                                <th>İşlemler</th>
                             </tr>
                         </thead>
                         <tbody>
             `;
 
             items.forEach(itemStr => {
-                const [cat, desc, amt, method] = itemStr.split(':::');
+                const [cat, desc, amt, method, id] = itemStr.split(':::');
                 const methodText = method === 'cash' ? 'Nakit' : 'Kredi Kartı';
                 detailHtml += `
                     <tr>
@@ -199,6 +200,7 @@ const Expense = {
                         <td>${desc || '-'}</td>
                         <td style="font-size: 0.75rem; color: var(--text-gray)">${methodText}</td>
                         <td class="text-danger">-${App.formatCurrency(parseFloat(amt))}</td>
+                        <td><button class="btn btn-sm" style="color:var(--danger); border:none; background:transparent;" onclick="Expense.deleteItem(${id}); event.stopPropagation();" title="Sil">🗑️</button></td>
                     </tr>
                 `;
             });
@@ -207,7 +209,7 @@ const Expense = {
                         </tbody>
                     </table>
                     <div style="margin-top: 1rem; display: flex; gap: 1rem; justify-content: flex-end;">
-                         <small style="color:var(--text-gray)">* Düzenlemek veya silmek için Raporlar sayfasını kullanın.</small>
+                         <small style="color:var(--text-gray)">* Geçmiş giderleri daha ayrıntılı incelemek için Raporlar sayfasını kullanabilirsiniz.</small>
                     </div>
                 </div>
             `;
