@@ -129,12 +129,6 @@ const App = {
         };
     },
     setupUpdateOverlay() {
-        const overlayHtml = `
-            <div class="update-overlay" id="globalUpdateOverlay">
-                <div class="update-box">
-                    <h2 id="updateTitle">Sistem Güncelleniyor</h2>
-                    <p id="updateText">Yeni özellikler ve iyileştirmeler indiriliyor. Lütfen bekleyin...</p>
-                    <div class="progress-container">
         if (document.getElementById('globalUpdateOverlay')) return;
         const overlay = document.createElement('div');
         overlay.id = 'globalUpdateOverlay';
