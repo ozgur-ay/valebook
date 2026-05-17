@@ -162,6 +162,7 @@ const Income = {
                     <td>${App.formatCurrency(item.cash_amount)}</td>
                     <td>${App.formatCurrency(item.card_amount)}</td>
                     <td>${App.formatCurrency(item.total_amount)}</td>
+                    <td>${item.note || '-'}</td>
                     <td>
                         <button class="btn-sm btn-danger" onclick="Income.deleteItem(${item.id})">Sil</button>
                     </td>

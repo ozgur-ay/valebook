@@ -12,11 +12,13 @@ router.get('/', (req, res) => {
         const { from, to } = req.query;
         let baseQuery = `
             SELECT 
+                id,
                 date,
-                SUM(vehicle_count) as vehicle_count,
-                SUM(cash_amount) as cash_amount,
-                SUM(card_amount) as card_amount,
-                SUM(total_amount) as total_amount
+                vehicle_count,
+                cash_amount,
+                card_amount,
+                total_amount,
+                note
             FROM income 
             WHERE is_deleted = 0
         `;
@@ -27,7 +29,7 @@ router.get('/', (req, res) => {
             params.push(from, to);
         }
 
-        baseQuery += ' GROUP BY date ORDER BY date DESC LIMIT 50';
+        baseQuery += ' ORDER BY date DESC, created_at DESC LIMIT 50';
         const rows = db.prepare(baseQuery).all(...params);
         res.json(rows);
     } catch (error) {
@@ -320,7 +322,7 @@ router.put('/:id/pos-status', (req, res) => {
 router.delete('/:id', (req, res) => {
     try {
         const { id } = req.params;
-        db.prepare('DELETE FROM income WHERE id = ?').run(id);
+        db.prepare('UPDATE income SET is_deleted = 1 WHERE id = ?').run(id);
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });

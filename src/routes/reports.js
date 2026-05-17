@@ -20,7 +20,7 @@ router.get('/summary', (req, res) => {
                 SUM(cash_amount) as total_cash,
                 SUM(card_amount) as total_card
             FROM income
-            WHERE date BETWEEN ? AND ?
+            WHERE date BETWEEN ? AND ? AND is_deleted = 0
         `).get(from, to) || {};
 
         const expense = db.prepare(`
@@ -28,7 +28,7 @@ router.get('/summary', (req, res) => {
                 category,
                 SUM(amount) as total_amount
             FROM expense
-            WHERE date BETWEEN ? AND ?
+            WHERE date BETWEEN ? AND ? AND is_deleted = 0
             GROUP BY category
         `).all(from, to) || [];
 
@@ -78,8 +78,8 @@ router.get('/export-excel', async (req, res) => {
         const { from, to } = req.query;
         if (!from || !to) return res.status(400).json({ error: 'Date range required' });
 
-        const incomeData = db.prepare('SELECT * FROM income WHERE date BETWEEN ? AND ? ORDER BY date').all(from, to);
-        const expenseData = db.prepare('SELECT * FROM expense WHERE date BETWEEN ? AND ? ORDER BY date').all(from, to);
+        const incomeData = db.prepare('SELECT * FROM income WHERE date BETWEEN ? AND ? AND is_deleted = 0 ORDER BY date').all(from, to);
+        const expenseData = db.prepare('SELECT * FROM expense WHERE date BETWEEN ? AND ? AND is_deleted = 0 ORDER BY date').all(from, to);
 
         const commissionSetting = db.prepare("SELECT value FROM settings WHERE key = 'pos_commission_rate'").get();
         const rate = commissionSetting ? parseFloat(commissionSetting.value) : 0;
