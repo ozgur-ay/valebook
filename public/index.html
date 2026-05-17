@@ -34,10 +34,19 @@
                         <button data-range="daily">Günlük</button>
                         <button data-range="weekly">Haftalık</button>
                         <button class="active" data-range="monthly">Aylık</button>
+                        <button data-range="custom">Özel</button>
                     </div>
                 </div>
                 <div class="date-display" id="currentDate">-- -- ----</div>
             </header>
+            
+            <div id="customDateArea" style="display: none; justify-content: center; align-items: center; gap: 1rem; margin-bottom: 2rem; margin-top: -1.5rem;">
+                <input type="date" id="customFrom" class="custom-date-input">
+                <span style="color: var(--text-gray)">-</span>
+                <input type="date" id="customTo" class="custom-date-input">
+                <button id="btnApplyCustom" class="btn btn-sm btn-primary">Uygula</button>
+            </div>
+
             <div id="selectedRangeLabel" style="text-align: center; color: var(--text-gray); font-size: 0.85rem; margin-top: -1.5rem; margin-bottom: 2rem; font-weight: 500;"></div>
 
             <section class="dashboard-overview">

@@ -323,6 +323,22 @@ input[type="date"] {
     cursor: pointer;
 }
 
+.custom-date-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-glass);
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    color: var(--text-white);
+    font-size: 0.8125rem;
+    transition: all 0.2s;
+}
+
+.custom-date-input:focus {
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.1);
+    outline: none;
+}
+
 /* Buttons */
 .btn {
     display: inline-flex;

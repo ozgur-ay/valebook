@@ -50,15 +50,29 @@ const Dashboard = {
 
     setupFilters() {
         const buttons = document.querySelectorAll('#timeRangeFilter button');
+        const customArea = document.getElementById('customDateArea');
+
         buttons.forEach(btn => {
             btn.onclick = async () => {
                 buttons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 this.currentRange = btn.dataset.range;
-                this.updateLabels();
-                await this.loadAll();
+                
+                if (this.currentRange === 'custom') {
+                    customArea.style.display = 'flex';
+                } else {
+                    customArea.style.display = 'none';
+                    this.updateLabels();
+                    await this.loadAll();
+                }
             };
         });
+
+        document.getElementById('btnApplyCustom').onclick = async () => {
+            this.updateLabels();
+            await this.loadAll();
+        };
+
         this.updateLabels();
     },
 
@@ -87,10 +101,12 @@ const Dashboard = {
             yesterday.setDate(now.getDate() - 1);
             cFrom = cTo = yesterday.toISOString().split('T')[0];
         } else if (range === 'weekly') {
-            const day = now.getDay();
+            // Pazartesi'den başla (Monday = 1)
+            const day = now.getDay(); // 0 (Sun) to 6 (Sat)
             const diff = now.getDate() - (day === 0 ? 6 : day - 1);
             const monday = new Date(now.getFullYear(), now.getMonth(), diff);
             from = monday.toISOString().split('T')[0];
+            to = today;
             
             const lastMon = new Date(monday);
             lastMon.setDate(monday.getDate() - 7);
@@ -100,12 +116,17 @@ const Dashboard = {
             cTo = lastSameDay.toISOString().split('T')[0];
         } else if (range === 'monthly') {
             from = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+            to = today;
             
             const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
             cFrom = lastMonth.toISOString().split('T')[0];
             
             const lastMonthSameDay = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
             cTo = lastMonthSameDay.toISOString().split('T')[0];
+        } else if (range === 'custom') {
+            from = document.getElementById('customFrom').value || today;
+            to = document.getElementById('customTo').value || today;
+            cFrom = null; cTo = null; // Custom aralıkta kıyaslama şimdilik yok
         }
 
         const fmt = (d) => {
